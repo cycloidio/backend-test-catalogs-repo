@@ -8,6 +8,18 @@ keywords:
 author: 'gaelL'
 image: 'https://raw.githubusercontent.com/cycloid/test-psc/stack-magento/master/icon.png'
 type: 'stack'
+technologies:
+  - technology: 'mysql'
+    version: '5.x'
+  - technology: 'Nginx'
+    version: '1.1x'
+dependencies:
+  - ref: 'cycloid:stack-infrastructure'
+    required: true
+  - ref: 'cycloid:infra-amazon-s3'
+    required: true
+  - ref: 'cycloid:stack-ses'
+    required: false
 config:
   pipeline:
     pipeline:
