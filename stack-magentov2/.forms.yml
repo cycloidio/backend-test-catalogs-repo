@@ -1,0 +1,69 @@
+first-usecase:
+  pipeline:
+    group1:
+    - widget: "text_area"
+      default: "nobucket"
+      type: "string"
+      description: "Bucket used to store magento code"
+      key: "magento_deploy_bucket_name"
+      name: "The bucket used"
+    - widget: "text_area"
+      type: "string"
+      description: "Doesn't matter"
+      key: "no-exist"
+      name: "Some imaginary var"
+  terraform:
+    group2:
+    - widget: "text_area"
+      type: "boolean"
+      key: "rds_multiaz"
+      name: "RDS multi-AZ"
+      required: true
+    - widget: "slider_range"
+      type: "integer"
+      default: 2
+      values: [1, 10]
+      key: "rds_backup_retention"
+      name: "Backup retention"
+      required: true
+    - widget: "number"
+      type: "integer"
+      key: "front_count"
+      name: "Front amount"
+      required: true
+    - widget: "text_area"
+      type: "array"
+      description: "List of public network IDs"
+      key: "public_subnets_ids"
+      name: "Pub nets"
+    - widget: "text_area"
+      type: "string"
+      description: "The VPC ID to run the project"
+      key: "vpc_id"
+      name: "VPC ID"
+second-usecase:
+  ansible:
+    groupY:
+    - widget: "dropdown"
+      values: [{foo: bar}, {bar: foo}]
+      type: "map"
+      name: "Magento Map"
+      key: "magento_map"
+      required: true
+  terraform:
+    groupX:
+    - widget: "simple_text"
+      default: ""
+      type: "string"
+      description: "The DB password for Magento"
+      key: "rds_password"
+      name: "RDS password"
+imaginary-use-case:
+  ansible:
+    group1:
+    - widget: "simple_text"
+      default: "don't matter"
+      type: "string"
+      description: "Some stuff"
+      key: "var"
+      name: "var with imaginary friends"
