@@ -41,6 +41,29 @@ first-usecase:
       description: "The VPC ID to run the project"
       key: "vpc_id"
       name: "VPC ID"
+    - widget: "slider_list"
+      required: true
+      default: {label: XS, value: t3.micro}
+      unit: "($, GHz, GB)"
+      type: "map"
+      values: [{label: XS, value: t3.micro}, {label: S, value: t3.small}, {label: M, value: t3.medium}, {label: L, value: t3.large}]
+      description: ""
+      key: "instance_type"
+      name: "mapped variable"
+      quota_config:
+        mapping:
+          t3.micro: "2 cpu, 2 memory"
+          t3.small: "3 cpu, 3 memory"
+          t3.medium: "3 cpu, 3 memory"
+          t3.large: "4 cpu, 4 memory"
+        count_ref: "front_count"
+    - widget: "number"
+      type: "integer"
+      key: "storage"
+      name: "Front storage"
+      quota_config:
+        type: "storage"
+        count_ref: "front_count"
 second-usecase:
   ansible:
     groupY:
