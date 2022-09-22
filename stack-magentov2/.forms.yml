@@ -43,7 +43,7 @@ first-usecase:
       name: "VPC ID"
     - widget: "slider_list"
       required: true
-      default: {label: XS, value: t3.micro}
+      default: "XS"
       unit: "($, GHz, GB)"
       type: "map"
       values: [{label: XS, value: t3.micro}, {label: S, value: t3.small}, {label: M, value: t3.medium}, {label: L, value: t3.large}]
