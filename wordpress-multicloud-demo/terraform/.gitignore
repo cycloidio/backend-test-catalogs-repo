@@ -1,0 +1,6 @@
+.tool-versions
+.terraform.lock.hcl
+.terraform/
+aws.tf
+azure.tf
+gcp.tf
