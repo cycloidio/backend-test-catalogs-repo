@@ -1,0 +1,618 @@
+# YAML anchors
+shared:
+  - &extract-vars
+    task: get-commit
+    config:
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: cycloid/cycloid-toolkit
+          tag: latest
+          registry_mirror:
+            host: 'registry-mirror.owl.cycloid.io'
+      inputs:
+        - name: code
+      run:
+        path: /bin/bash
+        args:
+          - -c
+          - |
+            DIR=${PWD}
+            echo "git_code_commit = \"$(cat code/.git/ref)\"" | tee -a extracted-vars/terraform.tfvars
+            echo "git_code_repo = \"${GIT_CODE_REPO}\"" | tee -a extracted-vars/terraform.tfvars
+      outputs:
+        - name: extracted-vars
+      params:
+        ENV: ((env))
+        GIT_CODE_REPO: ((code_git_public_repository))
+
+  # Task : sync and merge with rsync 2 rep. Used to merge stack and config
+  - &merge-stack-and-config
+    platform: linux
+    image_resource:
+      type: registry-image
+      source:
+        repository: cycloid/cycloid-toolkit
+        tag: latest
+        registry_mirror:
+          host: 'registry-mirror.owl.cycloid.io'
+    run:
+      path: /usr/bin/merge-stack-and-config
+    outputs:
+      - name: merged-stack
+
+resource_types:
+  - name: infrapolicy
+    type: registry-image
+    source:
+      repository: cycloid/infrapolicy-resource
+      tag: f63a909
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: git
+    type: registry-image
+    source:
+      repository: concourse/git-resource
+      tag: latest
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: terraform
+    type: registry-image
+    source:
+      repository: ljfranklin/terraform-resource
+      tag: 1.0.4
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: build-metadata-resource
+    type: registry-image
+    source:
+      repository: mastertinner/build-metadata-resource
+      tag: latest
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: slack-notification
+    type: registry-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: cycloid-events
+    type: registry-image
+    source:
+      repository: cycloid/cycloid-events-resource
+      tag: latest
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+  - name: approval
+    type: registry-image
+    source:
+      repository: cycloid/approval-resource
+      tag: latest
+      registry_mirror:
+        host: 'registry-mirror.owl.cycloid.io'
+
+resources:
+  - name: build-metadata
+    type: build-metadata-resource
+    icon: settings
+
+  - name: every-1h
+    type: time
+    icon: timer
+    source:
+      interval: 60m
+
+  - name: slack-alert
+    type: slack-notification
+    icon: slack
+    source:
+      url: ((slack_hook))
+
+  - name: cycloid-events
+    type: cycloid-events
+    icon: calendar
+    source:
+      api_key: ((api_key))
+      api_url: 'https://http-api.cycloid.io'
+      icon: fa-code-branch
+      organization: ((customer))
+      severity: info
+      type: Custom
+      tags:
+        - key: project
+          value: ((project))
+        - key: env
+          value: ((env))
+
+  - name: approval
+    type: approval
+    icon: progress-check
+    source:
+      AWS_ACCESS_KEY_ID: ((approval_aws_access_key))
+      AWS_DEFAULT_REGION: ((aws_default_region))
+      AWS_SECRET_ACCESS_KEY: ((approval_aws_secret_key))
+      pool: ((customer))-((project))
+
+  - name: check
+    type: infrapolicy
+    icon: police-badge
+    source:
+      api_url: 'https://http-api.cycloid.io'
+      api_key: ((api_key))
+      env: ((env))
+      org: ((customer))
+      project: ((project))
+
+  # Terraform by itself
+  - name: terraform
+    type: terraform
+    icon: terraform
+    source:
+      env_name: ((env))
+      backend_type: s3
+      backend_config:
+        bucket: ((terraform_storage_bucket_name))
+        key: ((project))-((env)).tfstate
+        workspace_key_prefix: ((project))
+        region: ((aws_default_region))
+        access_key: ((aws_access_key))
+        secret_key: ((aws_secret_key))
+      vars:
+        gcp_project: ((gcp_project))
+        gcp_zone: ((gcp_zone))
+        env: ((env))
+        project: ((project))
+        customer: ((customer))
+      env:
+        GOOGLE_PROJECT: ((gcp_project))
+        GOOGLE_ZONE: ((gcp_zone))
+        GOOGLE_CREDENTIALS: ((gcp_credentials_json))
+
+  # The Terraform stack (will be merged with the config)
+  - name: stack
+    type: git
+    icon: git
+    source:
+      uri: ((stack_git_repository))
+      branch: ((stack_git_branch))
+      private_key: ((stack_git_key))
+      paths:
+        - ((stack_terraform_path))/*
+
+  # The Terraform config (will be merged with the stack)
+  - name: config
+    type: git
+    icon: git
+    source:
+      uri: ((config_git_repository))
+      branch: ((config_git_branch))
+      private_key: ((config_git_key))
+      paths:
+        - ((config_terraform_path))/*
+
+  # The application code
+  - name: code
+    type: git
+    icon: git
+    source:
+      uri: ((code_git_public_repository))
+      branch: ((code_git_branch))
+
+groups:
+  - name: overview
+    jobs:
+  #      - code-validation
+  #      - build
+    - unittest-concourse
+    - deployment-terraform
+    - post-deployment-ansible
+    - functional-tests-concourse
+
+  - name: destroy
+    jobs:
+    - terraform-destroy
+    - reject-lock
+
+jobs:
+  - name: reject-lock
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - get: approval
+        params:
+          lock_name: ((customer))-((project))-((env))
+          need_approval: true
+
+    ensure:
+      put: approval
+      params:
+        action: release
+        lock_name: ((customer))-((project))-((env))
+
+  # Merge and trigger a plan whenever there is a commit in Terraform stack or config
+  - name: unittest-concourse
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - in_parallel:
+        - get: stack
+          trigger: true
+        - get: config
+          trigger: true
+        - get: code
+          trigger: true
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+            - name: config
+            - name: stack
+        params:
+          CONFIG_PATH: ((config_terraform_path))
+          STACK_PATH: ((stack_terraform_path))
+
+      - *extract-vars
+
+      - put: terraform
+        get_params:
+          output_planfile: true
+        params:
+          plan_only: true
+          terraform_source: merged-stack/
+          var_files:
+            - extracted-vars/terraform.tfvars
+
+      - put: check
+        params:
+          tfplan_path: terraform/plan.json
+          terracost: true
+
+    on_success:
+      put: approval
+      params:
+        action: claim
+        lock_name: ((customer))-((project))-((env))
+        need_approval: true
+        override_approval: true
+
+
+  # Merge and trigger an apply manually (no autostart of this job)
+  - name: deployment-terraform
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - in_parallel:
+        - get: approval
+          trigger: true
+          passed:
+            - unittest-concourse
+          params:
+            lock_name: ((customer))-((project))-((env))
+            need_approval: true
+        - get: stack
+          passed:
+            - unittest-concourse
+        - get: config
+          passed:
+            - unittest-concourse
+        - get: code
+          passed:
+            - unittest-concourse
+        - get: terraform
+          passed:
+            - unittest-concourse
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+            - name: config
+            - name: stack
+        params:
+          CONFIG_PATH: ((config_terraform_path))
+          STACK_PATH: ((stack_terraform_path))
+
+      - *extract-vars
+
+      - put: terraform
+        params:
+          run_plan: true
+          terraform_source: merged-stack/
+          var_files:
+            - extracted-vars/terraform.tfvars
+
+    ensure:
+      put: approval
+      params:
+        action: release
+        lock_name: ((customer))-((project))-((env))
+
+
+  - name: post-deployment-ansible
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - get: terraform
+        trigger: true
+        passed:
+          - deployment-terraform
+
+      - task: db-migrate
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          run:
+            path: /bin/bash
+            args:
+              - '-c'
+              - |
+                echo "running db migration ..."
+
+      - task: configure-project-backends
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          run:
+            path: /bin/bash
+            args:
+              - '-c'
+              - |
+                echo "Configuring infraView:"
+                return_code=$(curl -s -o output -w "%{http_code}" "${API_URL}/organizations/$ORGANIZATION/external_backends" --compressed \
+                -H "authorization: Bearer ${API_KEY}" \
+                -H 'content-type: application/vnd.cycloid.io.v1+json' \
+                -H 'Accept: */*' -H 'Connection: keep-alive' \
+                --data-raw '{"purpose":"remote_tfstate","project_canonical":"'"$PROJECT"'","environment_canonical":"'"$ENV"'","credential_canonical":"'"$EXTERNAL_BACKEND_AWS_CRED_NAME"'","configuration":{"region":"eu-west-1","bucket":"'"$BUCKET_NAME"'","key":"'"$BUCKET_PATH"'","engine":"AWSRemoteTFState"}}')
+
+                if [[ "$return_code" != "200" && "$return_code" != "422" ]]; then
+                    echo "error, return code $return_code"
+                    cat output
+                    exit 1
+                fi
+
+                echo "Configuring logs:"
+                return_code=$(curl -s -o output -w "%{http_code}" "${API_URL}/organizations/$ORGANIZATION/external_backends" --compressed \
+                -H "authorization: Bearer ${API_KEY}" \
+                -H 'content-type: application/vnd.cycloid.io.v1+json' \
+                -H 'Accept: */*' -H 'Connection: keep-alive' \
+                --data-binary '{"purpose":"logs","credential_canonical":"'"$EXTERNAL_BACKEND_AWS_CRED_NAME"'","project_canonical":"'"$PROJECT"'","configuration":{"region":"eu-west-1","engine":"AWSCloudWatchLogs"}}')
+
+                if [[ "$return_code" != "200" && "$return_code" != "422" ]]; then
+                    echo "error, return code $return_code"
+                    cat output
+                    exit 1
+                fi
+          params:
+            API_URL: 'https://http-api.cycloid.io'
+            ORGANIZATION: ((customer))
+            API_KEY: ((api_key))
+            ENV: ((env))
+            PROJECT: ((project))
+            BUCKET_PATH: ((project))/((env))/((project))-((env)).tfstate
+            BUCKET_NAME: ((terraform_storage_bucket_name))
+            EXTERNAL_BACKEND_AWS_CRED_NAME: ((external_backend_aws_cred_name))
+
+  - name: functional-tests-concourse
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - get: terraform
+        trigger: true
+        passed:
+          - post-deployment-ansible
+
+      - task: extract-url
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          inputs:
+            - name: terraform
+          run:
+            path: /bin/bash
+            args:
+              - '-c'
+              - |
+                python -c "import json; print('\n'.join([ '%s=%s' % (k,v) for k, v in json.load(open('terraform/metadata', 'r')).items()]))" | tee slack-env/env
+                python -c "import json; print('\n'.join([ '%s: %s' % (k,v) for k, v in json.load(open('terraform/metadata', 'r')).items()]))" | tee slack-env/env.yml
+          outputs:
+            - name: slack-env
+
+      - task: wait-a-bit
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          inputs:
+            - name: slack-env
+          run:
+            path: /bin/sh
+            args:
+              - '-exc'
+              - |
+                source slack-env/env
+                echo "Waiting for $ip_address"
+                timeout 300 bash -c 'while [[ "$(curl --insecure -s -o /dev/null -w ''%{http_code}'' http://'$ip_address')" != "200" ]]; do sleep 5 && echo .; done'
+
+    on_success:
+      do:
+        - put: slack-alert
+          params:
+            env_file: slack-env/env
+            attachments:
+              - author_link: 'https://www.cycloid.io/'
+                author_name: cycloid.io
+                color: good
+                title: '[SUCCESS]'
+                title_link: 'https://console.cycloid.io/projects/((customer))/((project))/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_ID'
+                pretext: Wordpress deployment success
+                text: |
+                  Wordpress url :
+                  http://$ip_address
+                fallback: 'Wordpress deployed'
+                fields:
+                  - short: true
+                    title: Project
+                    value: ((project))
+                  - short: true
+                    title: Environment
+                    value: ((env))
+
+        - put: cycloid-events
+          params:
+            vars_file: slack-env/env.yml
+            severity: info
+            title: Success deployment of ((project)) on ((env)) environment
+            message: |
+                    The project ((project)) on ((env)) environment have been deployed
+                    </br>
+                    <ul>
+                    <li><em><a target="_blank" href="http://$ip_address">Access to the application</a></em></li>
+                    </ul>
+
+
+  # Merge and trigger a destroy of the stack (no autostart of this job)
+  - name: terraform-destroy
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - in_parallel:
+        - get: stack
+        - get: code
+        - get: build-metadata
+        - get: config
+        # In case of fail, it will help to retry every 1h to make sure the terraform is destroyed
+        - get: every-1h
+          trigger: true
+        - get: terraform
+          trigger: true
+          passed:
+            - unittest-concourse
+
+      - task: wait-a-bit
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          run:
+            path: /bin/sh
+            args:
+              - '-ec'
+              - |
+                # Make this task wait a bit before a trigger of terraform destroy. 1h should be enough
+                sleep 3600
+
+      - task: merge-stack-and-config
+        config:
+          <<: *merge-stack-and-config
+          inputs:
+            - name: config
+            - name: stack
+        params:
+          CONFIG_PATH: ((config_terraform_path))
+          STACK_PATH: ((stack_terraform_path))
+
+      - *extract-vars
+
+      - put: terraform
+        params:
+          action: destroy
+          terraform_source: merged-stack/
+          var_files:
+              - extracted-vars/terraform.tfvars
+        get_params:
+          action: destroy
+
+      - task: pipeline-cleanup
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+              registry_mirror:
+                host: 'registry-mirror.owl.cycloid.io'
+          inputs:
+            - name: build-metadata
+          run:
+            path: /bin/bash
+            args:
+              - '-c'
+              - |
+                # Pause the start/stop pipeline if created (ignore failure if not created)
+                return_code=$(curl -s -o /dev/null -w "%{http_code}" -XPUT "${API_URL}/organizations/$ORGANIZATION/projects/${PROJECT}/pipelines/start-stop-$(cat build-metadata/build-pipeline-name)/pause" \
+                -H "authorization: Bearer ${API_KEY}" \
+                -H 'content-type: application/vnd.cycloid.io.v1+json' \
+                -H 'Accept: */*' -H 'Connection: keep-alive')
+
+                # Pause the pipeline
+                return_code=$(curl -s -o /dev/null -w "%{http_code}" -XPUT "${API_URL}/organizations/$ORGANIZATION/projects/${PROJECT}/pipelines/$(cat build-metadata/build-pipeline-name)/pause" \
+                -H "authorization: Bearer ${API_KEY}" \
+                -H 'content-type: application/vnd.cycloid.io.v1+json' \
+                -H 'Accept: */*' -H 'Connection: keep-alive')
+
+                if [[ "$return_code" != "204" ]]; then
+                    echo "error, return code $return_code"
+                    exit 1
+                fi
+        params:
+          API_URL: 'https://http-api.cycloid.io'
+          ORGANIZATION: ((customer))
+          API_KEY: ((api_key))
+          PROJECT: ((project))
+
+    on_failure:
+      put: slack-alert
+      params:
+        attachments:
+          - author_link: 'https://www.cycloid.io/'
+            author_name: cycloid.io
+            color: danger
+            title: '[FAIL]'
+            title_link: 'https://console.cycloid.io/projects/((customer))/((project))/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_ID'
+            pretext: Terraform destroy FAIL
+            fallback: 'Fail to destroy demo project'
+            fields:
+              - short: true
+                title: Project
+                value: ((project))
+              - short: true
+                title: Environment
+                value: ((env))

@@ -1,0 +1,14 @@
+module "instance" {
+  source   = "./module-gcp"
+  env      = var.env
+  customer = var.customer
+  project  = var.project
+
+  git_code_commit = var.git_code_commit
+  git_code_repo   = var.git_code_repo
+
+  # GCP
+  gcp_zone      = var.gcp_zone
+  gcp_project   = var.gcp_project
+  instance_type = "n1-standard-1"
+}

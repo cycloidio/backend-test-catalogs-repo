@@ -1,0 +1,117 @@
+version: "2"
+name: wordpress-multicloud-demo-test
+canonical: wordpress-multicloud-demo-test
+status: private
+author: Cycloid
+description: |
+  Deploy a Wordpress on a Cloud provider instance (V3)
+image: |
+  https://raw.githubusercontent.com/cycloidio/cycloid-demo/master/wp-stack-icon.png
+keywords:
+  - demo
+  - wordpress
+technologies:
+  - technology: wordpress
+    version: "n/a"
+
+config:
+  azure:
+    name: 'Azure'
+    description: 'Deploy a Wordpress application on Azure instance'
+    cloud_provider: azurerm
+    pipeline:
+      pipeline:
+        path: pipeline/azure/pipeline.yaml
+      variables:
+        path: pipeline/azure/variables.sample.yaml
+        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+    terraform:
+      wordpress-demo:
+        destination: ($ project $)/terraform/($ environment $)/main.tf
+        path: terraform/azure/azure.tf.sample
+
+  aws:
+    name: 'AWS'
+    description: 'Deploy a Wordpress application on AWS ec2 instance'
+    cloud_provider: aws
+    pipeline:
+      pipeline:
+        path: pipeline/aws/pipeline.yaml
+      variables:
+        path: pipeline/aws/variables.sample.yaml
+        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+    terraform:
+      wordpress-demo:
+        destination: ($ project $)/terraform/($ environment $)/main.tf
+        path: terraform/aws/aws.tf.sample
+#
+#  gcp:
+#    name: 'GCP'
+#    description: 'Deploy a Wordpress application on GCP compute instance'
+#    cloud_provider: google
+#    pipeline:
+#      pipeline:
+#        path: pipeline/gcp/pipeline.yaml
+#      variables:
+#        path: pipeline/gcp/variables.sample.yaml
+#        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+#    terraform:
+#      wordpress-demo:
+#        destination: ($ project $)/terraform/($ environment $)/main.tf
+#        path: terraform/gcp/gcp.tf.sample
+#
+#  vmware:
+#    name: 'VMware'
+#    description: 'Deploy a Wordpress application on VMware instance'
+#    pipeline:
+#      pipeline:
+#        path: pipeline/gcp/pipeline.yaml
+#      variables:
+#        path: pipeline/gcp/variables.sample.yaml
+#        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+#    terraform:
+#      wordpress-demo:
+#        destination: ($ project $)/terraform/($ environment $)/main.tf
+#        path: terraform/gcp/gcp.tf.sample
+#  
+#  fe:
+#    name: 'Flexible Engine'
+#    description: 'Deploy a Wordpress application on Flexible Engine instance'
+#    cloud_provider: flexibleengine
+#    pipeline:
+#      pipeline:
+#        path: pipeline/gcp/pipeline.yaml
+#      variables:
+#        path: pipeline/gcp/variables.sample.yaml
+#        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+#    terraform:
+#      wordpress-demo:
+#        destination: ($ project $)/terraform/($ environment $)/main.tf
+#        path: terraform/gcp/gcp.tf.sample
+#
+#  aws-gitlab:
+#    name: 'AWS with GitLabCI WordPress'
+#    description: 'Deploy a GitLabCI built WordPress docker image on AWS ec2 instance'
+#    cloud_provider: aws
+#    pipeline:
+#      pipeline:
+#        path: pipeline/aws-gitlab/pipeline.yaml
+#      variables:
+#        path: pipeline/aws-gitlab/variables.sample.yaml
+#        destination: ($ project $)/pipeline/($ environment $)/variables.yaml
+#    terraform:
+#      wordpress-demo:
+#        destination: ($ project $)/terraform/($ environment $)/main.tf
+#        path: terraform/aws-gitlab/aws.tf.sample
+#
+#    # used to override stepbystep stack with docker_image_code TERRAFORM
+#    #raw:
+#    #  extravars:
+#    #    destination: ($ project $)/terraform/($ environment $)/extravars.tf
+#    #    path: terraform/aws-gitlab/extravars.tf
+#    #  vm:
+#    #    destination: ($ project $)/terraform/($ environment $)/module-aws/vm.tf
+#    #    path: terraform/aws-gitlab/module-aws/vm.tf
+#    #  userdata:
+#    #    destination: ($ project $)/terraform/($ environment $)/module-aws/userdata.sh.tpl
+#    #    path: terraform/aws-gitlab/module-aws/userdata.sh.tpl

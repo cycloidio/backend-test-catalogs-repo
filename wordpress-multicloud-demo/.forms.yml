@@ -1,0 +1,533 @@
+---
+version: 2
+use_cases:
+  - name: cycloid-common
+    sections:
+      - name: Commons
+        groups:
+          - name: Servers Parameters
+            technologies: [pipeline]
+            vars:
+              - name: Servers names
+                key: list_server
+                type: string
+                widget: simple_text
+                description: Enter the NAME(s) separated by a comma
+                required: true
+
+              - name: Domain
+                description: Select the Domain
+                key: domain
+                widget: dropdown
+                type: map
+                required: true
+                values:
+                  - {"label": "domaine 1", "value": "domain-fr"}
+                  - {"label": "domaine 2", "value": "domain2-fr"}
+
+          - name: Servers Network Type
+            technologies: [pipeline,terraform]
+            vars:
+              - name: mdc
+                description: Do you need a MDC VRF ?
+                key: mdc
+                widget: switch
+                type: boolean
+                default: False
+
+          - name: Servers Network
+            technologies: [pipeline,terraform]
+            vars:
+              - name: Vlan
+                key: vlan
+                type: string
+                widget: simple_text
+                description: Enter vlan number - [Lien DDI](https://ddi.it.corp/)
+
+          - name: Servers Network Suffix
+            technologies: [pipeline]
+            condition: "$mdc == true"
+            vars:
+              - name: VRF's suffix
+                description: Select VRF suffix
+                key: suffix
+                widget: dropdown
+                type: map
+                values:
+                  - {"label": "Devant", "value": "1"}
+                  - {"label": "Derriere", "value": "2"}
+                  - {"label": "Agent", "value": "3"}     
+
+          - name: VM Type
+            technologies: [terraform,pipeline]
+            vars:
+              - name: VM Type
+                description: What type of VM do you need ?
+                key: vmtype
+                widget: dropdown
+                type: string
+                default: 'Normal'
+                values:
+                  - 'Normal'
+                  - 'Anormal'
+                required: true
+
+      - name: Terraform
+        groups:
+
+          - name: VM
+            technologies: [terraform]
+            vars:
+          
+              - name: Quantity of CPUs
+                key: server_cpu
+                type: integer
+                widget: slider_list
+                description: Select server CPU
+                default:
+                  options:
+                    - name: Normal CPU
+                      condition: "$vmtype == 'Normal'"
+                      default: 4
+                    - name: Anormal CPU
+                      condition: "$vmtype == 'Anormal'"
+                      default: 12
+                values:
+                  options:
+                    - name: Normal CPU
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 4
+                        - 6
+                        - 8
+                        - 12
+                    - name: Anormal CPU
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 12
+                        - 16
+                        - 24
+                quota_config:
+                  type: "cpu"
+                      
+              - name: Quantity of RAM
+                key: server_ram
+                type: integer
+                widget: slider_list
+                unit: Go
+                description: Select server RAM
+                default:
+                  options:
+                    - name: "4 CPUS default"
+                      condition: "$server_cpu == 4 && $vmtype == 'Normal'"
+                      default: 8
+                    - name: "6 CPUS default"
+                      condition: "$server_cpu == 6 && $vmtype == 'Normal'"
+                      default: 12
+                    - name: "8 CPUS default"
+                      condition: "$server_cpu == 8 && $vmtype == 'Normal'"
+                      default: 16
+                    - name: "12 CPUS default"
+                      condition: "$server_cpu == 12 && $vmtype == 'Normal'"
+                      default: 24
+                    - name: "12 CPUS MONSTER default"
+                      condition: "$server_cpu == 12 && $vmtype == 'Anormal'"
+                      default: 48
+                    - name: "16 CPUS default"
+                      condition: "$server_cpu == 16 && $vmtype == 'Anormal'"
+                      default: 48
+                    - name: "24 CPUS default"
+                      condition: "$server_cpu == 24 && $vmtype == 'Anormal'"
+                      default: 48
+                values:
+                  options:
+                    - name: "4 CPUS"
+                      condition: "$server_cpu == 4 && $vmtype == 'Normal'"
+                      values:
+                        - 8
+                        - 16
+                    - name: "6 CPUS"
+                      condition: "$server_cpu == 6 && $vmtype == 'Normal'"
+                      values:
+                        - 12
+                        - 18
+                    - name: "8 CPUS"
+                      condition: "$server_cpu == 8 && $vmtype == 'Normal'"
+                      values:
+                        - 16
+                        - 24
+                        - 32
+                    - name: "12 CPUS"
+                      condition: "$server_cpu == 12 && $vmtype == 'Normal'"
+                      values:
+                        - 24
+                    - name: "12 CPUS MONSTER"
+                      condition: "$server_cpu == 12 && $vmtype == 'Anormal'"
+                      values:
+                        - 48
+                        - 64
+                        - 96
+                        - 128
+                    - name: "16 CPUS"
+                      condition: "$server_cpu == 16 && $vmtype == 'Anormal'"
+                      values:
+                        - 48
+                        - 64
+                        - 96
+                        - 128
+                    - name: "24 CPUS"
+                      condition: "$server_cpu == 24 && $vmtype == 'Anormal'"
+                      values:
+                        - 48
+                        - 64
+                        - 96
+                        - 128
+                quota_config:
+                  type: "memory"
+                  count_ref: convertToMB
+
+          - name: Data Disks
+            technologies: [pipeline]
+            vars:
+              - name: Data disks
+                description: Do you need Data disks ?
+                key: add_disks
+                widget: slider_list
+                type: integer
+                default: 0
+                values:
+                  - 0
+                  - 1
+                  - 2
+                  - 3
+                  - 4
+                  - 5
+
+          - name: Data disk 1
+            technologies: [terraform]
+            condition: "$add_disks > 0"
+            vars:
+              - name: Data disk
+                unit: Go
+                description: Data disk size
+                key: size_b
+                widget: slider_range
+                type: integer
+                default: 0
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 0
+                        - 500
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 0
+                        - 1000
+                quota_config:
+                  type: "storage"
+                  count_ref: convertToMB
+
+          - name: Data disk 2
+            technologies: [terraform]
+            condition: "$add_disks > 1"
+            vars:
+              - name: Data disk
+                unit: Go
+                description: Data disk size
+                key: size_c
+                widget: slider_range
+                type: integer
+                default: 0
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 0
+                        - 500
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 0
+                        - 1000
+                quota_config:
+                  type: "storage"
+                  count_ref: convertToMB
+
+          - name: Data disk 3
+            technologies: [terraform]
+            condition: "$add_disks > 2"
+            vars:
+              - name: Data disk
+                unit: Go
+                description: Data disk size
+                key: size_d
+                widget: slider_range
+                type: integer
+                default: 0
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 0
+                        - 500
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 0
+                        - 1000
+                quota_config:
+                  type: "storage"
+                  count_ref: convertToMB
+
+          - name: Data disk 4
+            technologies: [terraform]
+            condition: "$add_disks > 3"
+            vars:
+              - name: Data disk
+                unit: Go
+                description: Data disk size
+                key: size_e
+                widget: slider_range
+                type: integer
+                default: 0
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 0
+                        - 500
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 0
+                        - 1000
+                quota_config:
+                  type: "storage"
+                  count_ref: convertToMB
+
+          - name: Data disk 5
+            technologies: [terraform]
+            condition: "$add_disks > 4"
+            vars:
+              - name: Data disk
+                unit: Go
+                description: Data disk size
+                key: size_f
+                widget: slider_range
+                type: integer
+                default: 0
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - 0
+                        - 500
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - 0
+                        - 1000
+                quota_config:
+                  type: "storage"
+                  count_ref: convertToMB
+
+              - name: " "
+                key: convertToMB
+                type: integer
+                default: 1024
+
+  - name: aws
+    sections:
+      - name: Commons
+        groups:
+          - name: Servers Parameters
+            technologies: [pipeline]
+            vars:
+              - name: Servers names
+                key: list_server
+                type: string
+                widget: simple_text
+                description: Enter the NAME(s) separated by a comma
+                required: true
+
+              - name: Operating system
+                key: os
+                type: string
+                widget: dropdown
+                description: Select operating system
+                required: true
+                default: Windows Server 2019
+                values:
+                  - Windows Server 2016
+                  - Windows Server 2019
+                  - Windows Server 2022
+
+          - name: Windows license key
+            technologies: [pipeline]
+            vars:
+              - name: Select Windows License Key
+                description: Select Windows License Key
+                key: win_license_key
+                widget: dropdown
+                type: map
+                default:
+                  options:
+                    - name: "Windows 2016 default keys"
+                      condition: "$os == 'Windows Server 2016'"
+                      default: "MAK"
+                    - name: "Windows 2019 default keys"
+                      condition: "$os == 'Windows Server 2019'"
+                      default: "MAK"
+                    - name: "Windows 2022 default keys"
+                      condition: "$os == 'Windows Server 2022'"
+                      default: "MAK"
+                values:
+                  options:
+                    - name: "Windows 2016 keys"
+                      condition: "$os == 'Windows Server 2016'"
+                      values:
+                        - {"label": "MAK", "value": "key"}
+                    - name: "Windows 2019 keys"
+                      condition: "$os == 'Windows Server 2019'"
+                      values:
+                        - {"label": "MAK", "value": "key"}
+                    - name: "Windows 2022 keys"
+                      condition: "$os == 'Windows Server 2022'"
+                      values:
+                        - {"label": "MAK", "value": "key"}
+
+      - name: Terraform
+        groups:
+
+          - name: VM
+            technologies: [terraform,pipeline]
+            vars:
+              - name: Cluster Name
+                description: Select Cluster
+                key: clusterName
+                widget: dropdown
+                type: map
+                default:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      default: "Production2"
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      default: "Production2"
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - {"label":"Production1","value":"1"}
+                        - {"label":"Production2","value":"12"}
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - {"label":"Production1","value":"123"}
+                        - {"label":"Production2","value":"1234"}
+
+          - name: System Disk
+            technologies: [terraform]
+            vars:
+              - name: System disk size
+                unit: Go
+                description: System disk size
+                key: size_a
+                widget: slider_range
+                type: integer
+                default: 81
+                values:
+                  - 81
+                  - 500
+                  
+  - name: azure
+    sections:
+      - name: Commons
+        groups:
+          - name: Servers Parameters
+            technologies: [pipeline]
+            vars:
+              - name: Servers names
+                key: list_server
+                type: string
+                widget: simple_text
+                description: Enter the NAME(s) separated by a comma
+                required: true
+
+              - name: Operating system
+                key: os
+                type: string
+                widget: dropdown
+                description: Select operating system
+                default: Debian 11
+                values:
+                  - Debian 10
+                  - Debian 11
+                  - RHEL 7
+
+              - name: Disable swap
+                key: swap_off
+                type: string
+                widget: dropdown
+                description: Deactivate swap
+                values:
+                  - "no"
+                  - "yes"
+                default: "no"
+                required: true
+
+      - name: Terraform
+        groups:
+
+          - name: VM
+            technologies: [terraform,pipeline]
+            vars:
+              - name: Cluster Name
+                description: Select Cluster
+                key: clusterName
+                widget: dropdown
+                type: map
+                default:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      default: "Production2"
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      default: "Production2"
+                values:
+                  options:
+                    - name: Normal VM
+                      condition: "$vmtype == 'Normal'"
+                      values:
+                        - {"label":"Production1","value":"1"}
+                        - {"label":"Production2","value":"12"}
+                    - name: Anormal VM
+                      condition: "$vmtype == 'Anormal'"
+                      values:
+                        - {"label":"Production1","value":"123"}
+                        - {"label":"Production2","value":"1234"}
+                
+          - name: System Disk
+            technologies: [terraform]
+            vars:
+              - name: System disk size
+                unit: Go
+                description: System disk size
+                key: size_a
+                widget: slider_range
+                type: integer
+                default: 30
+                values:
+                  - 30
+                  - 500
+
