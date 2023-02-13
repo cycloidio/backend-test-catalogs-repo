@@ -1,0 +1,13 @@
+module "instance" {
+  source   = "./module-aws"
+  customer = var.customer
+  project  = var.project
+  env      = var.env
+
+  git_code_commit = var.git_code_commit
+  git_code_repo   = var.git_code_repo
+
+  docker_image_code = var.docker_image_code
+
+  instance_type       = "t3.small"
+}
