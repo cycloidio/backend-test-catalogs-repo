@@ -1,0 +1,13 @@
+module "vmstack" {
+  source             = "./module-vmstack"
+  cluster_name       = ""
+  server_cpu         = 0
+  server_ram         = 0
+  size_a             = 0
+  size_b             = 0
+  size_c             = 0
+  size_d             = 0
+  size_e             = 0
+  size_f             = 0
+  vm_infos           = var.vm_infos
+}
