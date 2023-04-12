@@ -341,6 +341,7 @@ use_cases:
               - name: " "
                 key: convertToMB
                 type: integer
+                widget: number
                 default: 1024
 
   - name: aws
