@@ -489,35 +489,6 @@ use_cases:
       - name: Terraform
         groups:
 
-          - name: VM
-            technologies: [terraform,pipeline]
-            vars:
-              - name: Cluster Name
-                description: Select Cluster
-                key: clusterName
-                widget: dropdown
-                type: map
-                default:
-                  options:
-                    - name: Normal VM
-                      condition: "$vmtype == 'Normal'"
-                      default: "Production2"
-                    - name: Anormal VM
-                      condition: "$vmtype == 'Anormal'"
-                      default: "Production2"
-                values:
-                  options:
-                    - name: Normal VM
-                      condition: "$vmtype == 'Normal'"
-                      values:
-                        - {"label":"Production1","value":"1"}
-                        - {"label":"Production2","value":"12"}
-                    - name: Anormal VM
-                      condition: "$vmtype == 'Anormal'"
-                      values:
-                        - {"label":"Production1","value":"123"}
-                        - {"label":"Production2","value":"1234"}
-                
           - name: System Disk
             technologies: [terraform]
             vars:
