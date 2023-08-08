@@ -404,9 +404,22 @@ use_cases:
                       values:
                         - {"label": "MAK", "value": "key"}
 
+          - name: VM Type
+            technologies: [terraform,pipeline]
+            vars:
+              - name: VM Type
+                description: What type of VM do you need ?
+                key: vmtype
+                widget: dropdown
+                type: string
+                default: 'Normal'
+                values:
+                  - 'Normal'
+                  - 'Anormal'
+                required: true
+
       - name: Terraform
         groups:
-
           - name: VM
             technologies: [terraform,pipeline]
             vars:
