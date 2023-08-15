@@ -64,6 +64,12 @@ first-usecase:
       quota_config:
         type: "storage"
         count_ref: "front_count"
+  terragrunt:
+    group3:
+    - widget: "number"
+      type: "integer"
+      key: "allocated_storage"
+      name: "Front storage"
 second-usecase:
   ansible:
     groupY:

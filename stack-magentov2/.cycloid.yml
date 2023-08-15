@@ -29,6 +29,11 @@ config:
       magento:
         path: 'terraform/first/magento.tf.sample'
         destination: '($ project $)/terraform/first/magento/($ environment $)/magento.tf'
+
+    terragrunt:
+      magento:
+        path: 'terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
+        destination: '($ project $)/terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
   second-usecase:
     pipeline:
       pipeline:
