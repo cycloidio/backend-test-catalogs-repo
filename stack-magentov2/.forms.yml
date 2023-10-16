@@ -64,6 +64,13 @@ first-usecase:
       quota_config:
         type: "storage"
         count_ref: "front_count"
+    - widget: "cy_inventory_resource"
+      type: "int"
+      key: "inventory_test"
+      name: "Inventory test"
+      widget_config:
+        type: "aws_vpc"
+        attribute: "id"
   terragrunt:
     group3:
     - widget: "number"
