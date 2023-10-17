@@ -65,7 +65,7 @@ first-usecase:
         type: "storage"
         count_ref: "front_count"
     - widget: "cy_inventory_resource"
-      type: "int"
+      type: "integer"
       key: "inventory_test"
       name: "Inventory test"
       widget_config:
