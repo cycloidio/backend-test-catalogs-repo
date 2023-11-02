@@ -69,8 +69,9 @@ first-usecase:
       key: "inventory_test"
       name: "Inventory test"
       widget_config:
-        type: "aws_vpc"
         attribute: "id"
+        filters:
+          type: "aws_vpc"
   terragrunt:
     group3:
     - widget: "number"
