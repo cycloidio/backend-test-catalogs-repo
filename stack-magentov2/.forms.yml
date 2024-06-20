@@ -72,6 +72,12 @@ first-usecase:
         attribute: "id"
         filters:
           type: "aws_vpc"
+    - widget: "dropdown"
+      type: "map"
+      key: "interpolated_values_ref"
+      name: "Inventory test"
+      required: true
+      values_ref: "https://example.com/${storage}"
   terragrunt:
     group3:
     - widget: "number"
