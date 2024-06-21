@@ -73,12 +73,12 @@ first-usecase:
         filters:
           type: "aws_vpc"
     - widget: "dropdown"
-      values: ["eu-west-1","eu-west-2"]
+      values: [{label:"1", value:"eu-west-1"},{label: "2", value: "eu-west-2"}]
       type: "map"
       name: "Magento Map"
       key: "region"
       required: true
-      default: "eu-west-1"
+      default: "1"
     - widget: "dropdown"
       type: "map"
       key: "interpolated_values_ref"
