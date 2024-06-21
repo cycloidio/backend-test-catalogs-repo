@@ -73,10 +73,17 @@ first-usecase:
         filters:
           type: "aws_vpc"
     - widget: "dropdown"
+      values: ["eu-west-1","eu-west-2"]
+      type: "map"
+      name: "Magento Map"
+      key: "region"
+      required: true
+      default: "eu-west-1"
+    - widget: "dropdown"
       type: "map"
       key: "interpolated_values_ref"
       name: "Inventory test"
-      values_ref: "https://example.com/${storage}"
+      values_ref: "https://6f46-2a01-cb00-f9c-df00-3bee-7f0a-ab6-cf57.ngrok-free.app/vpc_mapping?region=${region}"
   terragrunt:
     group3:
     - widget: "number"
