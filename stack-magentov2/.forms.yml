@@ -91,6 +91,16 @@ first-usecase:
       values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?region=${region}"
       widget_config:
         multiselect: true
+    - widget: "dropdown"
+      type: "array"
+      key: "interpolated_condition"
+      name: "Inventory test condition"
+      values:
+        options:
+          - condition: ($ .project_owner_canonical $) == 'robert_parkin'
+            values: ["8.0", "5.7"]
+          - condition: ($ .project_owner_canonical $) != 'robert_parkin'
+            values: ["13", "14", "15"]
   terragrunt:
     group3:
     - widget: "number"
