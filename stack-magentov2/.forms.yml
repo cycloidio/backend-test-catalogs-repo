@@ -92,7 +92,7 @@ first-usecase:
       widget_config:
         multiselect: true
     - widget: "dropdown"
-      type: "array"
+      type: "string"
       key: "interpolated_condition"
       name: "Inventory test condition"
       values:
