@@ -83,7 +83,7 @@ first-usecase:
       type: "map"
       key: "interpolated_values_ref"
       name: "Inventory test"
-      values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)"
+      values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ use_case $)"
     - widget: "dropdown"
       type: "array"
       key: "interpolated_multi_values_ref"
@@ -97,9 +97,9 @@ first-usecase:
       name: "Inventory test condition"
       values:
         options:
-          - condition: "'($ project_owner_canonical $)' == 'robert_parkin'"
+          - condition: "'($ environment $)' == 'robert_parkin'"
             values: ["8.0", "5.7"]
-          - condition: "'($ project_owner_canonical $)' != 'robert_parkin'"
+          - condition: "'($ environment $)' != 'robert_parkin'"
             values: ["13", "14", "15"]
   terragrunt:
     group3:
