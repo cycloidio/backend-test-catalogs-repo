@@ -11,6 +11,7 @@ image: 'https://raw.githubusercontent.com/cycloid/test-psc/stack-magento/master/
 type: 'stack'
 config:
   first-usecase:
+    cloud_provider: 'aws'
     pipeline:
       pipeline:
         path: 'pipeline/first/magento.yml'
@@ -24,7 +25,7 @@ config:
         path: 'ansible/first/environments/front.yml.sample'
         destination: '($ project $)/ansible/first/environments/($ environment $)-front.yml'
 
-    # Configuration of terraform to setup the infrastructure    
+    # Configuration of terraform to setup the infrastructure
     terraform:
       magento:
         path: 'terraform/first/magento.tf.sample'
@@ -35,6 +36,7 @@ config:
         path: 'terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
         destination: '($ project $)/terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
   second-usecase:
+    cloud_provider: 'azure'
     pipeline:
       pipeline:
         path: 'pipeline/second/magento.yml'
@@ -48,7 +50,7 @@ config:
         path: 'ansible/second/environments/front.yml.sample'
         destination: '($ project $)/ansible/second/environments/($ environment $)-front.yml'
 
-    # Configuration of terraform to setup the infrastructure    
+    # Configuration of terraform to setup the infrastructure
     terraform:
       magento:
         path: 'terraform/second/magento.tf.sample'
