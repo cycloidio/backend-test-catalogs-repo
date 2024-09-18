@@ -73,7 +73,7 @@ config:
 #      wordpress-demo:
 #        destination: ($ project $)/terraform/($ environment $)/main.tf
 #        path: terraform/gcp/gcp.tf.sample
-gs#
+#
 #  fe:
 #    name: 'Flexible Engine'
 #    description: 'Deploy a Wordpress application on Flexible Engine instance'
