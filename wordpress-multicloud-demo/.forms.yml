@@ -5,8 +5,7 @@ use_cases:
     sections:
       - name: Commons
         groups:
-          - name: Servers Parameterss
-            condition: "$aws_account_id == '($ project_owner_canonical $)'"
+          - name: Servers Parameters
             technologies: [pipeline]
             vars:
               - name: Servers names
