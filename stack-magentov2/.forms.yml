@@ -83,7 +83,7 @@ first-usecase:
       type: "map"
       key: "interpolated_values_ref"
       name: "Inventory test"
-      values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)"
+      values_ref: "https://devs-testing-bucke.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)"
     - widget: "dropdown"
       type: "array"
       key: "interpolated_multi_values_ref"
