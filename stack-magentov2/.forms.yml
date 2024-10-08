@@ -84,14 +84,12 @@ first-usecase:
       key: "interpolated_values_ref"
       name: "Inventory test"
       default: "1a"
-      values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)"
+      values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)&region=${region}"
     - widget: "dropdown"
       type: "array"
       key: "interpolated_multi_values_ref"
       name: "Inventory test"
       values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?region=${region}"
-      default:
-        - "1a"
       widget_config:
         multiselect: true
     - widget: "dropdown"
