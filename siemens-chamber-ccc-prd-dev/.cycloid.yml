@@ -26,5 +26,5 @@ config: # Here will be filled by .cycloid-usecases-tmpl.yml
       config_hcl:
         path: 'dev/config.hcl'
         destination: 'env/dev/siemens-chamber-ccc-prd/aws/us-west-1/config.hcl'
-        cost_estimation_pre_hook: "script.sh"
+        #cost_estimation_pre_hook: "script.sh"
 ### dev: END
