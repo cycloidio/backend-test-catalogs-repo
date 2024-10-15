@@ -1,0 +1,219 @@
+definitions:
+  tasks:
+    - &terragrunt
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+          run:
+            path: /bin/bash
+            args:
+            - -ec
+            - |
+              source /usr/bin/cecho-utils
+              DIR=${PWD}
+              GIT_URL=${git_url}
+              GIT_URL=$(echo $GIT_URL | awk -F'//' '{print $2}' | cut -d'/' -f1)
+              git config --global credential.helper 'store --file ~/.git-credentials'
+
+              echo https://${git_user}:${git_pass}@$GIT_URL > ~/.git-credentials
+
+              pinfo "### Current directories"
+              ls -1 $tf_path
+
+              pinfo "### Installing Terraform"
+              export TERRAFORM_VERSION='1.1.6'
+              wget -O terraform.zip  https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+              unzip terraform.zip
+              mv terraform /usr/local/bin/terraform
+              chmod +x /usr/local/bin/terraform
+  
+              pinfo "### Installing Terragrunt"
+              wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.2/terragrunt_linux_amd64
+              mv terragrunt_linux_amd64 /usr/local/bin/terragrunt
+              chmod +x /usr/local/bin/terragrunt
+   
+              pinfo "### Generate Aws profile $aws_profile_name"
+              mkdir ~/.aws
+              AWS_ACCESS_KEY=$(echo ${aws_cred}|jq -r .access_key)
+              AWS_SECRET_KEY=$(echo ${aws_cred}|jq -r .secret_key)
+  
+              cat >> ~/.aws/credentials <<EOF
+              [${aws_profile_name}]
+              aws_access_key_id=${AWS_ACCESS_KEY}
+              aws_secret_access_key=${AWS_SECRET_KEY}
+              EOF
+  
+              cat >> ~/.aws/config <<EOF
+              [profile ${aws_profile_name}]
+              region=${aws_default_region}
+              output=json
+              EOF
+  
+              cat ~/.aws/config
+              echo ${tfpath}
+              echo ${chamber_path}
+
+              pwarning "###"
+              pwarning "### Running Terragrunt $ACTION under $tf_path/${chamber_path}"
+              pwarning "###"
+
+              export TF_INPUT=false
+              export PROJECT_ROOT=$DIR/$tf_path
+  
+              cd $tf_path
+  
+              #
+              # PLACEHOLDER ####
+              #
+              # You can put git subtree commands here
+
+              pwarning "### Running Terragrunt $ACTION under $tf_path/${chamber_path}"
+
+              apk add -q --no-progress git-subtree
+              psuccess "Running git subtree commands ..."
+  
+              set +x
+              git config --global user.email "you@example.com"
+              git config --global user.name "Your Name"
+
+              # IAC
+              git remote add -f license $git_url_iac_license_chamber
+              #git subtree add --prefix versions/1.05/code license 1.05 --squash
+              git subtree add --prefix $tg_version license $(echo $tg_version | sed -r 's@.+/([^/]+)/.+@\1@') --squash
+              # Variants
+              git remote add -f variants $git_url_iac_variants
+              git subtree add --prefix variants/1.02/license-chamber variants 1.02 --squash
+
+              #cp -R variants/1.02/license-chamber/1.02 env/dev/xxx/aws/us-west-1/.
+              rsync -av variants/1.02/license-chamber/1.02/license-chamber/license1/ $chamber_path/
+              set -x
+
+              #
+              # ###
+              #
+              pwd
+              cd ${chamber_path}
+              pinfo "## Listing files"
+              echo $AWS_PROFILE
+              export AWS_PROFILE=${aws_profile_name}
+              echo $AWS_PROFILE
+              export TF_INPUT=false
+              export PROJECT_ROOT=${chamber_path}
+              pinfo "## Listing files using profile name"
+              aws s3 ls --profile ${aws_profile_name} 
+
+              if [[ "$ACTION" == "apply" ]]; then
+                set -x
+                AWS_PROFILE=${aws_profile_name}  terragrunt run-all apply  --terragrunt-non-interactive -lock=false
+              elif [[ "$ACTION" == "destroy" ]]; then
+                set -x
+                terragrunt run-all destroy  --terragrunt-non-interactive -lock=false 
+              else
+                set -x
+                pinfo "## Running plan"
+                pwd 
+                ls -la 
+                terragrunt run-all plan --terragrunt-non-interactive
+              fi
+          inputs:
+            - name: git_config
+              path: "terragrunt"
+          outputs:
+            - name: troutputs
+          params:
+            ACTION: plan
+            aws_profile_name: "default"
+            tf_path: terragrunt
+            chamber_path: ((chamber_config_path))
+            aws_default_region: ((locals_aws_region))
+            aws_cred: ((aws_cred))
+            git_user: ((gitlab_username))
+            git_pass: ((gitlab_password))
+            git_url: ($ .scs_url $)
+            # GIT_SSH_KEY: ((($ .cr_cred_path $).ssh_key)) # Used in order to provide manual post-git commands
+            git_url_iac_terraform: ((git_url_iac_terraform))
+            git_url_iac_variants: ((git_url_iac_variants))
+            git_url_iac_license_chamber: ((git_url_iac_license_chamber))
+            git_url_cfg_license_chamber: ((git_url_cfg_license_chamber))
+            # tg_version Come from stackforms and be written in config.hcl and in the pipeline
+            # value example: versions/1.05/code
+            tg_version: ((tg_version))
+
+# Declare resources to be invoked later in jobs.
+resources:
+- name: git_config
+  type: git
+  icon: github-circle
+  source:
+    uri: ($ .cr_url $)
+    branch: ($ .cr_branch $)
+    ($- if eq .cr_cred_type "basic_auth" $)
+    username: ((($ .cr_cred_path $).username))
+    password: ((($ .cr_cred_path $).password))
+    ($- else $)
+    private_key: ((($ .cr_cred_path $).ssh_key))
+    ($- end $)
+    # Include only the Terraform files in the specified directory.
+    paths:
+      - ((chamber_config_path))/*
+      - versions/*
+
+# Define jobs that form the pipeline
+jobs:
+  # - name: terragrunt-plan
+  #   serial: true
+  #   serial_groups: [terragrunt]
+  #   max_in_flight: 1
+  #   build_logs_to_retain: 10
+  #   plan:
+  #     - do:
+  #       - get: git_config
+  #         trigger: true
+
+  #       - task: terragrunt
+  #         <<: *terragrunt
+  #         params:
+  #           ACTION: plan
+
+  - name: terragrunt-apply
+    serial: true
+    serial_groups: [terragrunt]
+    build_logs_to_retain: 10
+    plan:
+      - do:
+        - get: git_config
+          trigger: true
+          # passed:
+          #   - terragrunt-plan
+        - task: terragrunt
+          <<: *terragrunt
+          params:
+            ACTION: apply
+
+  - name: terragrunt-destroy
+    serial: true
+    serial_groups: [terragrunt]
+    build_logs_to_retain: 10
+    plan:
+      - do:
+          - get: git_config
+            trigger: false
+          - task: terragrunt
+            <<: *terragrunt
+            params:
+              ACTION: destroy
+
+# Organize jobs into groups.
+# See: https://concourse-ci.org/pipelines.html#schema.pipeline.groups
+groups:
+- name: overview
+  jobs:
+  # - terragrunt-plan
+  - terragrunt-apply
+- name: destroy
+  jobs:
+  - terragrunt-destroy

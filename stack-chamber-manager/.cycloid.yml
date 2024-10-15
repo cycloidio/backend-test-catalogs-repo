@@ -1,0 +1,49 @@
+# Use the latest version 3 of the Cycloid stack engine.
+version: '3'
+name: chamber-manager
+canonical: chamber-manager
+author: 'cycloid-gael'
+# Fill in the stack details.
+description: 'Automate the creation of new chambers'
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+keywords:
+  - 'terragrunt'
+  - 'aws'
+technologies:
+  - technology: terragrunt
+    version: 1.8.2
+template: false
+status: 'private'
+# Add use cases to the stack.
+# See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
+config:
+  create-chamber:
+    name: 'Create chamber'
+    description: 'Use this to create a new chamber.'
+    cloud_provider: aws
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline-create-chamber.yml'
+      variables:
+        path: 'pipeline/variables-create-chamber.sample.yml'
+        destination: 'cycloid/($ .project $)/pipeline/variables-($ .environment $).yml'
+  chambers-manager:
+    name: 'chambers-manager'
+    description: 'Use this to run Terragrunt on several chambers. (Should be created only once)'
+    cloud_provider: aws
+    pipeline:
+      pipeline:
+
+        # /!\ This template is currently not used.
+        # using chamber-stack-template/pipeline/pipeline.yml
+        # because currently the workflow is exactly the same, the only difference is
+        # to pass a different chamber_path. Instead of a specific one, we only have to pass the root "env" one
+        # This expected to be later a dedicated pipeline with his dedicated workflow
+        #path: 'pipeline/pipeline-chambers-manager.yml'
+
+        path: 'chamber-stack-template/pipeline/pipeline.yml'
+      variables:
+        #path: 'pipeline/variables-chambers-manager.sample.yml'
+
+        path: 'chamber-stack-template/pipeline/variables.sample.yml'
+        destination: '($ .project $)/pipeline/variables-($ .environment $).yml'

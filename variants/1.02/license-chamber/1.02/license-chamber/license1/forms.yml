@@ -1,0 +1,41 @@
+### $CHAMBER_ENV: START
+- name: $CHAMBER_ENV
+  sections:
+  - name: Cloud provider
+    groups:
+    - name: Access
+      technologies: [pipeline]
+      vars:
+      - name: "Aws region"
+        key: aws_region
+        type: string
+        widget: auto_complete
+        values: ["eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+        default: "eu-west-1"
+      - name: "AWS access key"
+        description: "AWS access key which should be used"
+        key: aws_cred
+        type: string
+        widget: cy_cred
+        widget_config:
+          display_keys: false
+          cred_types: [aws]
+        default: "((aws))"
+
+  - name: Application
+    groups:
+    - name: Configuration
+      technologies: [terragrunt]
+      vars:
+      - name: "ami"
+        key: lisc_svr_ami
+        type: string
+        widget: simple_text
+        default: "ami-022ce6f32988af5fa"
+
+      - name: "team"
+        key: locals_team
+        type: string
+        widget: simple_text
+        default: "DI SW TI TO AS MCS"
+### $CHAMBER_ENV: END

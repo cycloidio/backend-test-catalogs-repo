@@ -1,0 +1,414 @@
+# Declare resources to be invoked later in jobs.
+resources:
+# The Terraform stack (will be merged with the config).
+#- name: git_stack # Repo containing Cycloid stacks (automation)
+#  type: git
+#  icon: github-circle
+#  source:
+#    uri: ($ .scs_url $)
+#    branch: ($ .scs_branch $)
+#    # Stack templating examples:
+#    # https://docs.cycloid.io/reference/stack/concepts/templating/
+#    ($- if eq .scs_cred_type "basic_auth" $)
+#    username: ((($ .scs_cred_path $).username))
+#    password: ((($ .scs_cred_path $).password))
+#    ($- else $)
+#    private_key: ((($ .scs_cred_path $).ssh_key))
+#    ($- end $)
+#    # Include only the Terraform files in the specified directory.
+#    #paths:
+#    #  - ($ .stack_path $)/terragrunt/*
+
+# The Terraform config (will be merged with the stack).
+- name: git_config # Repo containing "env" directory with all chambers
+  type: git
+  icon: github-circle
+  source:
+    uri: ($ .cr_url $)
+    branch: ($ .cr_branch $)
+    ($- if eq .cr_cred_type "basic_auth" $)
+    username: ((($ .cr_cred_path $).username))
+    password: ((($ .cr_cred_path $).password))
+    ($- else $)
+    private_key: ((($ .cr_cred_path $).ssh_key))
+    ($- end $)
+    #paths:
+    #  - ($ .project $)/terragrunt/($ .environment $)/*
+
+# Define jobs that form the pipeline
+jobs:
+  - name: create-chamber
+    serial: true
+    serial_groups: [terragrunt]
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - do:
+        #- get: git_stack
+        #  trigger: false
+        - get: git_config
+          trigger: false
+        - task: create-chamber
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: cycloid/cycloid-toolkit
+                tag: latest
+            run:
+              path: /bin/bash
+              args:
+              - -xec
+              - |
+                DIR=${PWD}
+                source /usr/bin/cecho-utils
+
+                git config --global user.email "admins+github@cycloid.io"
+                git config --global user.name "cycloid-machine"
+
+                tocanonical () {
+                    echo $@ | tr '[:upper:]' '[:lower:]' | sed -e 's/[^0-9a-z-]/-/g'
+                }
+                # Use canonical version for CHAMBER_NAME
+                export CHAMBER_NAME=$(tocanonical $CHAMBER_NAME)
+                export CHAMBER_ENV=$(tocanonical $CHAMBER_ENV)
+
+                export STACK_NAME="${CHAMBER_NAME}-${CHAMBER_ENV}"
+
+                #export STACK_TMPL_PATH=$DIR/stack/($ .stack_path $)/chamber-stack-template
+                #export CHAMBER_STACK_PATH=$DIR/stack/$STACK_NAME
+                # Looking the new files provided, it seems stacks are stored in the same repo as config (siemens-cfg-license-chamber)
+                export STACK_TMPL_PATH=$DIR/config/($ .stack_path $)/chamber-stack-template
+                export CHAMBER_STACK_PATH=$DIR/config/$STACK_NAME
+
+                export CHAMBER_ENV_DEST_RELATIVE_PATH=env/$CHAMBER_ENV/$CHAMBER_NAME/$TMPL_PROVIDER/$CHAMBER_REGION
+
+                export CHAMBER_ENV_SRC_PATH=$DIR/config/$TMPL_PATH
+                export CHAMBER_ENV_DEST_PATH=$DIR/config/$CHAMBER_ENV_DEST_RELATIVE_PATH
+
+                pinfo "listing DIR contents"
+                ls -R $DIR
+                main(){
+                    pwarning "#"
+                    pwarning "# Create chamber processing"
+                    pwarning "#"
+
+                    # STACK
+                    pwarning "### Check if a stack exist for chamber $CHAMBER_NAME"
+                    # Check if a stack already exist for this chamber
+                    if [ -d "$CHAMBER_STACK_PATH" ]; then
+                        pinfo "Stack found, skipping..."
+                    else
+                        pinfo "Creating a new stack"
+                        create_chamber_stack
+                    fi
+
+                    # CONFIG (Chamber env)
+                    pwarning "### Check if 'env' stack exist for chamber $CHAMBER_NAME"
+                    if [ -d "$CHAMBER_ENV_DEST_PATH" ]; then
+                        perror "Skipping, config $CHAMBER_ENV_DEST_PATH already exist..."
+                    else
+                        pinfo "No 'env' found for chamber $CHAMBER_NAME, init a new one..."
+                        init_chamber_env
+                    fi
+                }
+
+                # Create a new chamber
+                create_chamber_stack () {
+                  pwarning "### Create chamber (stack) $STACK_NAME"
+                  pinfo "Copy stack template"
+                  rsync -a $STACK_TMPL_PATH/ $CHAMBER_STACK_PATH/
+                  # Templating
+                  envsubst '$STACK_NAME' < $STACK_TMPL_PATH/.cycloid.yml > $CHAMBER_STACK_PATH/.cycloid.yml
+                  envsubst '$CHAMBER_ENV_DEST_RELATIVE_PATH $CHAMBER_REGION $git_url_iac_terraform $git_url_iac_variants $git_url_iac_license_chamber $git_url_cfg_license_chamber' < $STACK_TMPL_PATH/.forms.yml > $CHAMBER_STACK_PATH/.forms.yml
+                  add_chamber_stack_usecase
+                }
+
+                # Add a usecase to an existing chamber
+                add_chamber_stack_usecase () {
+                  pwarning "### Add usecase $CHAMBER_ENV to $STACK_NAME"
+
+                  pinfo "Reading stackforms usecase $CHAMBER_ENV_SRC_PATH/forms.yml"
+                  if [ ! -f "$CHAMBER_ENV_SRC_PATH/forms.yml" ]; then
+                    pinfo "File not found skipping..."
+                  else
+                    pinfo "Merging chamber forms.yml to the stack one"
+                    envsubst '$CHAMBER_NAME $CHAMBER_ENV $CHAMBER_REGION' < $CHAMBER_ENV_SRC_PATH/forms.yml >> $CHAMBER_STACK_PATH/.forms.yml
+                  fi
+
+                  pinfo "Copy config.hcl sample files used by stackforms"
+                  mkdir -p $CHAMBER_STACK_PATH/$CHAMBER_ENV
+                  cp $CHAMBER_ENV_SRC_PATH/config.hcl $CHAMBER_STACK_PATH/$CHAMBER_ENV/
+
+                  pinfo "Define config.hcl location into .cycloid.yml"
+                  envsubst '$CHAMBER_NAME $CHAMBER_ENV $CHAMBER_ENV_DEST_RELATIVE_PATH' < $STACK_TMPL_PATH/.cycloid-usecases-tmpl.yml >> $CHAMBER_STACK_PATH/.cycloid.yml
+
+                  #cd $DIR/stack
+                  cd $DIR/config
+                  git add .
+                  git commit -m "Adding $STACK_NAME - $CHAMBER_ENV"
+                }
+
+                init_chamber_env () {
+                    pwarning "### Copy 'env' files into the config repo"
+                    mkdir -p $CHAMBER_ENV_DEST_PATH
+                    rsync -a $CHAMBER_ENV_SRC_PATH/ $CHAMBER_ENV_DEST_PATH/
+
+                    #
+                    # Here is a placeholder for additional changes detected during tests
+                    #
+                    pinfo "...Replace the s3 bucket in $CHAMBER_ENV_DEST_PATH/terragrunt.hcl"
+                #    sed -i 's/bucket *= *"([^"]+)"/bucket = "place bucket name HERE"/g' $CHAMBER_ENV_DEST_PATH/terragrunt.hcl
+
+                #    pinfo "...Create and change ...environment.hcl"
+                #    ENV_HCL_DST=$(dirname $(dirname $CHAMBER_ENV_DEST_PATH))/environment.hcl
+
+                #    cat > $ENV_HCL_DST <<EOF
+                #inputs = {
+                #  environment = "default"
+                #  region      = "$CHAMBER_REGION"
+                #}
+                #EOF
+
+                    cd $DIR/config
+                    git add .
+                    git commit -m "Adding $STACK_NAME - $CHAMBER_ENV"
+                }
+
+                pwarning "### Starting processing"
+                main
+
+                psuccess "### Produced files"
+                pwarning "CONFIG"
+                cd $DIR/config
+                #git status
+                find $CHAMBER_ENV_DEST_RELATIVE_PATH -type f
+
+                pwarning "STACK"
+                #cd $DIR/stack
+                find $STACK_NAME -type f
+
+            params:
+              TMPL_PATH: ((tmpl_path))
+              TMPL_PROVIDER: "aws"
+              CHAMBER_REGION: ((chamber_region))
+              CHAMBER_NAME: ((chamber_name)) # Used to create cycloid project name
+              CHAMBER_ENV: ((chamber_env))
+              # Add git lab repo url in order to set them as default in chambers stacks
+              git_url_iac_terraform: ((git_url_iac_terraform))
+              git_url_iac_variants: ((git_url_iac_variants))
+              git_url_iac_license_chamber: ((git_url_iac_license_chamber))
+              git_url_cfg_license_chamber: ((git_url_cfg_license_chamber))
+
+            inputs:
+#            - name: git_stack
+#              path: stack
+            - name: git_config
+              path: config
+            outputs:
+#            - name: stack
+#              path: "stack"
+            - name: config
+              path: "config"
+#      - put: stack
+#        resource: git_stack
+#        params:
+#          repository: stack
+      - put: config
+        resource: git_config
+        params:
+          repository: config
+
+
+
+  - name: initiate-project
+    serial: true
+    serial_groups: [terragrunt]
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - do:
+#        - get: git_stack
+#          trigger: true
+#          passed: [create-chamber]
+        - get: git_config
+#          trigger: false
+          trigger: true
+          passed: [create-chamber]
+        - task: initiate project
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: cycloid/cycloid-toolkit
+                tag: latest
+            run:
+              path: /bin/bash
+              args:
+              - -xec
+              - |
+                DIR=${PWD}
+                source /usr/bin/cecho-utils
+
+                tocanonical () {
+                    echo $@ | tr '[:upper:]' '[:lower:]' | sed -e 's/[^0-9a-z-]/-/g'
+                }
+
+                # Use canonicals
+                export CHAMBER_NAME=$(tocanonical $CHAMBER_NAME)
+                export CHAMBER_ENV=$(tocanonical $CHAMBER_ENV)
+
+                export STACK_NAME="${CHAMBER_NAME}-${CHAMBER_ENV}"
+
+                main(){
+                    pwarning "#"
+                    pwarning "# Create Cycloid project"
+                    pwarning "#"
+
+                    cy --org $ORG login --api-key $API_KEY
+                    # make sure the catalog repo is up to date
+                    cy --org $ORG catalog-repository refresh  --canonical ((catalog_repo_canonical))
+
+                    pwarning "### Check if project already exist"
+                    
+                    RET=$(cy --org $ORG project list -o json | jq .[].canonical -r | grep -E  '^'$STACK_NAME'$' || echo "")
+                    if [[ -n "$RET" ]]; then
+                        perror "Project already exist ..."
+
+                    else # Create a project with the new created stack
+                        cy --org $ORG project create --name "$STACK_NAME" --config-repo "$CONFIG_REPO_CANONICAL" --stack-ref "${ORG}:${STACK_NAME}"
+                    fi
+
+                    psuccess "#"
+                    psuccess "# Chamber created, you can successfully configure a new environment at ($ .console_url $)/organizations/($ .organization_canonical $)/projects/$STACK_NAME/service/addEnv"
+                    psuccess "#  >>  $STACK_NAME   <<"
+                }
+
+                main
+            params:
+              CHAMBER_NAME: ((chamber_name)) # Used to create cycloid project name
+              CHAMBER_ENV: ((chamber_env))
+              ORG: ($ .organization_canonical $)
+              API_KEY: ((api_key))
+              CONFIG_REPO_CANONICAL: ((config_repo_canonical))
+              CY_API_URL: ($ .api_url $)
+            inputs:
+#            - name: git_stack
+#              path: stack
+            - name: git_config
+              path: config
+
+  - name: purge-chamber
+    serial: true
+    serial_groups: [terragrunt]
+    max_in_flight: 1
+    build_logs_to_retain: 10
+    plan:
+      - do:
+#        - get: git_stack
+#          trigger: false
+        - get: git_config
+          trigger: false
+        - task: delete-chamber
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: cycloid/cycloid-toolkit
+                tag: latest
+            run:
+              path: /bin/bash
+              args:
+              - -xec
+              - |
+                DIR=${PWD}
+                source /usr/bin/cecho-utils
+
+                git config --global user.email "admins+github@cycloid.io"
+                git config --global user.name "cycloid-machine"
+
+                tocanonical () {
+                    echo $@ | tr '[:upper:]' '[:lower:]' | sed -e 's/[^0-9a-z-]/-/g'
+                }
+                # Use canonical version for CHAMBER_NAME
+                export CHAMBER_NAME=$(tocanonical $CHAMBER_NAME)
+                export CHAMBER_ENV=$(tocanonical $CHAMBER_ENV)
+
+                export STACK_NAME="${CHAMBER_NAME}-${CHAMBER_ENV}"
+
+                #export CHAMBER_STACK_PATH=$DIR/stack/$STACK_NAME
+                export CHAMBER_STACK_PATH=$DIR/config/$STACK_NAME
+
+                export CHAMBER_ENV_DEST_PATH=env/$CHAMBER_ENV/$CHAMBER_NAME/$TMPL_PROVIDER/$CHAMBER_REGION
+                export CHAMBER_ENV_DEST_PATH=$DIR/config/$CHAMBER_ENV_DEST_PATH
+
+                cy --org $ORG login --api-key $API_KEY
+                RET=$(cy --org $ORG project list -o json | jq .[].canonical -r | grep -E  '^'$STACK_NAME'$' || echo "")
+                if [[ -n "$RET" ]]; then
+                    perror "Project chamber still exist, make sure to remove it before ..."
+                    exit 1
+                fi
+
+                pwarning "### Removing Chamber Config"
+                cd $DIR/config
+                git rm -r $CHAMBER_ENV_DEST_PATH
+                git commit -a -m "Removing $CHAMBER_NAME - $CHAMBER_ENV"
+
+                pwarning "### Removing Chamber stack"
+                #cd $DIR/stack
+                git rm -r $CHAMBER_STACK_PATH
+                git commit -a -m "Removing $STACK_NAME - $CHAMBER_ENV"
+
+            params:
+              API_KEY: ((api_key))
+              ORG: ($ .organization_canonical $)
+              TMPL_PATH: ((tmpl_path))
+              TMPL_PROVIDER: "aws"
+              CHAMBER_REGION: ((chamber_region))
+              CHAMBER_NAME: ((chamber_name)) # Used to create cycloid project name
+              CHAMBER_ENV: ((chamber_env))
+              CY_API_URL: ($ .api_url $)
+            inputs:
+#            - name: git_stack
+#              path: stack
+            - name: git_config
+              path: config
+            outputs:
+#            - name: stack
+#              path: "stack"
+            - name: config
+              path: "config"
+#      - put: stack
+#        resource: git_stack
+#        params:
+#          repository: stack
+      - put: config
+        resource: git_config
+        params:
+          repository: config
+
+      - task: refresh-catalog-repo
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: cycloid/cycloid-toolkit
+              tag: latest
+          run:
+            path: /bin/bash
+            args:
+            - -xec
+            - |
+              DIR=${PWD}
+              source /usr/bin/cecho-utils
+
+              cy --org $ORG login --api-key $API_KEY
+              cy --org $ORG catalog-repository refresh  --canonical ((catalog_repo_canonical))
+          params:
+            API_KEY: ((api_key))
+            ORG: ($ .organization_canonical $)
+            CY_API_URL: ($ .api_url $)

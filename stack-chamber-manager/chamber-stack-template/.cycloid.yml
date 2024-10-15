@@ -1,0 +1,14 @@
+# Use the latest version 3 of the Cycloid stack engine.
+version: '3'
+name: $STACK_NAME
+canonical: $STACK_NAME
+author: 'cycloid'
+description: '$STACK_NAME'
+# Fill in the stack details.
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+keywords:
+  - 'terragrunt'
+technologies:
+template: false
+status: 'private'
+config: # Here will be filled by .cycloid-usecases-tmpl.yml

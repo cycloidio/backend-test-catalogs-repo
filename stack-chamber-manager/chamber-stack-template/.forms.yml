@@ -1,0 +1,43 @@
+version: 2
+
+# Define the stack configuration form and organize inputs of various types into sections and groups.
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+- name: cycloid-common
+  sections:
+  - name: Admin
+    groups:
+    - name: Config
+      technologies: [pipeline]
+      vars:
+      - name: "chamber_config_path"
+        widget: simple_text
+        key: chamber_config_path
+        type: "string"
+        required: true
+        default: $CHAMBER_ENV_DEST_RELATIVE_PATH
+
+    - name: Gitlab
+      technologies: [pipeline]
+      vars:
+        - name: "URL iac-terraform"
+          widget: simple_text
+          key: git_url_iac_terraform
+          type: "string"
+          default: "$git_url_iac_terraform"
+        - name: "URL iac-variants"
+          widget: simple_text
+          key: git_url_iac_variants
+          type: "string"
+          default: "$git_url_iac_variants"
+        - name: "URL iac-license-chamber"
+          widget: simple_text
+          key: git_url_iac_license_chamber
+          type: "string"
+          default: "$git_url_iac_license_chamber"
+        - name: "URL cfg-license-chamber"
+          widget: simple_text
+          key: git_url_cfg_license_chamber
+          type: "string"
+          default: "$git_url_cfg_license_chamber"
+

@@ -1,0 +1,156 @@
+# Use the latest version 2 of the Cycloid StackForms engine.
+version: 2
+
+use_cases:
+- name: cycloid-common
+  sections:
+  - name: Cycloid-admin
+    groups:
+    - name: template
+      technologies: [pipeline]
+      vars:
+        - name: "Cycloid API key"
+          widget: cy_cred
+          key: api_key
+          type: "string"
+          default: "((cycloid-api-key.key))"
+          required: true
+          widget_config:
+            cred_types: ["custom"]
+
+- name: chambers-manager
+  sections:
+  - name: Chambers
+    groups:
+    - name: Config
+      technologies: [pipeline]
+      vars:
+      - name: "chamber_config_path"
+        widget: simple_text
+        key: chamber_config_path
+        type: "string"
+        required: true
+        default: env
+  - name: Cloud provider
+    groups:
+    - name: Access
+      technologies: [pipeline]
+      vars:
+      - name: "Aws region"
+        key: aws_region
+        type: string
+        widget: auto_complete
+        values: ["eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+        default: "ap-south-1"
+      - name: "AWS access key"
+        description: "AWS access key which should be used to create a aws profile file to run Terragrunt"
+        key: aws_cred
+        type: string
+        widget: cy_cred
+        widget_config:
+          display_keys: false
+          cred_types: [aws]
+        default: "((aws))"
+
+
+- name: create-chamber
+  sections:
+  - name: Chamber
+    groups:
+    - name: template
+      technologies: [pipeline]
+      vars:
+      #
+      # /!\ Important This current form is hardcode in order to match provided "env" directory content.
+      # In order to make it dynamic we could probably use stackforms dynamic-values feature (https://docs.cycloid.io/reference/stackforms/concepts/dynamic-values)
+      # Using this, we could provide a URL or HTTP script browsing "env" directory to fill this form datas./
+      #
+        - name: "Template path"
+          widget: simple_text
+          key: tmpl_path
+          type: "string"
+          default: .cycloid/templates/license1/region
+
+    - name: config
+      technologies: [pipeline]
+      vars:
+        - name: "Chamber name"
+          description: "Going to be used as Cycloid project name and stack name prefix"
+          widget: simple_text
+          key: chamber_name
+          type: "string"
+          required: true
+          default: ($ .environment $)
+          validations:
+            - regexp: '^[a-z0-9-]+$'
+              error_message: 'The value must be only lowercase char, integer or "-"'
+        - name: "Chamber region"
+          widget: dropdown
+          key: chamber_region
+          type: "string"
+          required: true
+          values:
+                - us-west-2
+                - us-west-1
+                - ap-south-1
+                
+        - name: "Chamber Env"
+          widget: slider_list
+          key: chamber_env
+          type: "string"
+          default: dev
+          required: true
+          values:
+            - dev
+            - prd
+            - stg
+
+
+  - name: Admin
+    groups:
+    - name: repo-config
+      technologies: [pipeline]
+      vars:
+        - name: "Config repo canonical"
+          description: "Specify the Cycloid 'config' repo canonical where the chambers env directory will be created."
+          widget: simple_text
+          key: config_repo_canonical
+          type: "string"
+          default: "siemens-config"
+          required: true
+        - name: "Catalog repo canonical"
+          description: "Specify the Cycloid 'catalog' repo canonical where the chambers dedicated stacks will be created."
+          widget: simple_text
+          key: catalog_repo_canonical
+          type: "string"
+          default: "siemens-stacks"
+          required: true
+
+    - name: Gitlab
+      technologies: [pipeline]
+      vars:
+        - name: "URL iac-terraform"
+          widget: simple_text
+          key: git_url_iac_terraform
+          type: "string"
+          default: "https://gitlab.industrysoftware.automation.siemens.com/eda-cloud/mcseda/iac-terraform.git"
+        - name: "URL iac-variants"
+          widget: simple_text
+          key: git_url_iac_variants
+          type: "string"
+          default: "https://gitlab.industrysoftware.automation.siemens.com/eda-cloud/mcseda/iac-variants.git"
+        - name: "URL iac-license-chamber"
+          widget: simple_text
+          key: git_url_iac_license_chamber
+          type: "string"
+          default: "https://gitlab.industrysoftware.automation.siemens.com/eda-cloud/mcseda/iac-license-chamber.git"
+        - name: "URL cfg-license-chamber"
+          widget: simple_text
+          key: git_url_cfg_license_chamber
+          type: "string"
+          default: "https://gitlab.industrysoftware.automation.siemens.com/eda-cloud/mcseda/cfg-license-chamber.git"
+
+
+
+
+

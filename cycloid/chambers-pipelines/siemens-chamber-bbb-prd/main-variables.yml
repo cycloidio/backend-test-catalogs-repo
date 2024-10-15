@@ -1,0 +1,10 @@
+gitlab_username: ((gitlab_https.username))
+gitlab_password: ((gitlab_https.password))
+aws_cred: ((aws))
+chamber_config_path: env/prd/siemens-chamber-bbb/aws/us-west-2
+git_url_cfg_license_chamber: https://gitlab.com/cycloidio/siemens-cfg-license-chamber.git
+git_url_iac_license_chamber: https://gitlab.com/cycloidio/siemens-iac-license-chamber.git
+git_url_iac_terraform: https://gitlab.com/cycloidio/siemens-iac-terraform.git
+git_url_iac_variants: https://gitlab.com/cycloidio/siemens-iac-variants.git
+locals_aws_region: us-west-2
+tg_version: versions/1.05/code

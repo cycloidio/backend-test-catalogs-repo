@@ -1,0 +1,29 @@
+# Use the latest version 3 of the Cycloid stack engine.
+version: '3'
+name: siemens-chamber-bbb-prd
+canonical: siemens-chamber-bbb-prd
+author: 'cycloid'
+description: 'siemens-chamber-bbb-prd'
+# Fill in the stack details.
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+keywords:
+  - 'terragrunt'
+technologies:
+template: false
+status: 'private'
+config: # Here will be filled by .cycloid-usecases-tmpl.yml
+### prd: START
+  prd:
+    name: 'prd'
+    cloud_provider: aws
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
+        destination: 'cycloid/chambers-pipelines/($ .project $)/($ .environment $)-variables.yml'
+    terragrunt:
+      config_hcl:
+        path: 'prd/config.hcl'
+        destination: 'env/prd/siemens-chamber-bbb/aws/us-west-2/config.hcl'
+### prd: END

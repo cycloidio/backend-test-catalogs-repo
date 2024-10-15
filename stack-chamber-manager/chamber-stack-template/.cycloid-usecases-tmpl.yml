@@ -1,0 +1,16 @@
+### $CHAMBER_ENV: START
+  $CHAMBER_ENV:
+    name: '$CHAMBER_ENV'
+    cloud_provider: aws
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
+        destination: 'cycloid/chambers-pipelines/($ .project $)/($ .environment $)-variables.yml'
+    terragrunt:
+      config_hcl:
+        path: '$CHAMBER_ENV/config.hcl'
+        destination: '$CHAMBER_ENV_DEST_RELATIVE_PATH/config.hcl'
+        cost_estimation_pre_hook: "script.sh"
+### $CHAMBER_ENV: END

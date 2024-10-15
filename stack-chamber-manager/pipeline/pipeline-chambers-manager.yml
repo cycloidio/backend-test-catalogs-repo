@@ -1,0 +1,6 @@
+# /!\ This template is currently not used.
+# using chamber-stack-template/pipeline/pipeline.yml
+# because currently the workflow is exactly the same, the only difference is
+# to pass a different chamber_path. Instead of a specific one, we only have to pass the root "env" one
+# This expected to be later a dedicated pipeline with his dedicated workflow
+

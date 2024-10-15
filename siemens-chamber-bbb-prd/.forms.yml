@@ -1,0 +1,99 @@
+version: 2
+
+# Define the stack configuration form and organize inputs of various types into sections and groups.
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+- name: cycloid-common
+  sections:
+  - name: Admin
+    groups:
+    - name: Config
+      technologies: [pipeline]
+      vars:
+      - name: "chamber_config_path"
+        widget: simple_text
+        key: chamber_config_path
+        type: "string"
+        required: true
+        default: env/prd/siemens-chamber-bbb/aws/us-west-2
+
+    - name: Gitlab
+      technologies: [pipeline]
+      vars:
+        - name: "URL iac-terraform"
+          widget: simple_text
+          key: git_url_iac_terraform
+          type: "string"
+          default: "https://gitlab.com/cycloidio/siemens-iac-terraform.git"
+        - name: "URL iac-variants"
+          widget: simple_text
+          key: git_url_iac_variants
+          type: "string"
+          default: "https://gitlab.com/cycloidio/siemens-iac-variants.git"
+        - name: "URL iac-license-chamber"
+          widget: simple_text
+          key: git_url_iac_license_chamber
+          type: "string"
+          default: "https://gitlab.com/cycloidio/siemens-iac-license-chamber.git"
+        - name: "URL cfg-license-chamber"
+          widget: simple_text
+          key: git_url_cfg_license_chamber
+          type: "string"
+          default: "https://gitlab.com/cycloidio/siemens-cfg-license-chamber.git"
+
+### prd: START
+- name: prd
+  sections:
+  - name: Cloud provider
+    groups:
+    - name: Access region
+      technologies: [pipeline, terragrunt]
+      vars:
+      - name: "Aws region"
+        key: locals_aws_region
+        type: string
+        widget: auto_complete
+        values: ["eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+        default: "us-west-2"
+ 
+    - name: Access
+      technologies: [pipeline]
+      vars:
+      - name: "AWS access key"
+        description: "AWS access key which should be used"
+        key: aws_cred
+        type: string
+        widget: cy_cred
+        widget_config:
+          display_keys: false
+          cred_types: [aws]
+        default: "((aws))"
+ 
+  - name: Application
+    groups:
+    - name: Terragrunt
+      technologies: [terragrunt]
+      vars:
+      - name: "Chamber name"
+        key: locals_chamber_name
+        type: string
+        widget: simple_text
+        default: ($ .project $)
+ 
+      - name: "ami"
+        key: lisc_svr_ami
+        type: string
+        widget: simple_text
+        default: "ami-0993c44b77113d6eb"
+ 
+  - name: Application version
+    groups:
+    - name: Terragrunt
+      technologies: [pipeline, terragrunt]
+      vars:
+      - name: "tg_version"
+        key: tg_version
+        type: string
+        widget: simple_text
+        default: "versions/1.04/code"
+### prd: END
