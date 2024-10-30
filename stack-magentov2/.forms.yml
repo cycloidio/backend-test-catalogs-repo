@@ -83,13 +83,19 @@ first-usecase:
       type: "map"
       key: "interpolated_cy_values_ref"
       name: "Inventory test"
-      default: "1a"
+      default: '1a'
+      values: 
+        - {label: '1a', value: 'vpc-1-a'}
+        - {label: '1b', value: 'vpc-1-b'}
       values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ project_owner_canonical $)"
     - widget: "dropdown"
       type: "map"
       key: "interpolated_sf_values_ref"
       name: "Inventory test"
-      default: "1a"
+      default: '1a'
+      values: 
+        - {label: '1a', value: 'vpc-1-a'}
+        - {label: '1b', value: 'vpc-1-b'}
       values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?storage=${storage}"
     - widget: "dropdown"
       type: "array"
