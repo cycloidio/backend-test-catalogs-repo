@@ -1,0 +1,21 @@
+# Use the latest version 2 of the Cycloid stack engine.
+version: 3
+name: cma-condition-2143
+canonical: cma-condition-2143
+author: 'florian'
+# Fill in the stack details.
+description: 'The bare minimum files to build your stack from scratch.'
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+template: false
+status: 'private'
+# Add use cases to the stack.
+# See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
+config:
+  default:
+    name: 'Default'
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
+        destination: '($ .project $)/pipeline/variables-($ .environment $).yml'

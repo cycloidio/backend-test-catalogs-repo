@@ -1,0 +1,53 @@
+---
+# general-settings ADDITIONAL FORMS #
+use_cases:
+  - name: default
+    sections:
+      - name: Source base image
+        groups:
+          - name: Operating System
+            technologies: [pipeline]
+            vars:
+              - name: Amazon Machine Image
+                description: |
+                  Select the Amazon Machine Image (AMI) that best fits your needs.
+                  <details><summary>Operating System Details</summary>
+                  - **Ubuntu Linux**: A popular, open-source Linux distribution suitable for development, web servers, and general-purpose computing.
+                  - **Red Hat Linux**: An enterprise-grade Linux distribution ideal for businesses needing stability, security, and commercial support.
+                  </details>
+                key: os
+                widget: dropdown
+                type: map
+                values:
+                  - label: "Ubuntu Linux"
+                    value: "ubuntu"
+                  - label: "Red Hat Linux"
+                    value: "rhel"
+                required: true
+
+              - name: Version
+                description: |
+                  Select the version of the operating system based on your previous selection.
+                  The available versions will be filtered according to your chosen OS type.
+                key: os_version
+                widget: dropdown
+                values:
+                  options:
+                    #- condition: "$os == 'rhel'"
+                    - condition: "$os == 'Red Hat Linux'"
+                      values:
+                        - label: Red Hat 8.6
+                          value: "8.6.0"
+                        - label: Red Hat 9.4
+                          value: "9.4.0"
+                    #- condition: "$os == 'ubuntu'"
+                    - condition: "$os == 'Ubuntu Linux'"
+                      values:
+                        - label: Ubuntu LTS 20.04
+                          value: "20.04"
+                        - label: Ubuntu LTS 22.04
+                          value: "22.04"
+                        - label: Ubuntu LTS 24.04
+                          value: "24.04"
+                type: map
+                required: true
