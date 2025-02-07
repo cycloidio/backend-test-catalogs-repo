@@ -1,132 +1,38 @@
-first-usecase:
-  pipeline:
-    group1:
-      - widget: "text_area"
-        default: "nobucket"
-        type: "string"
-        description: "Bucket used to store magento code"
-        key: "magento_deploy_bucket_name"
-        name: "The bucket used"
-      - widget: "text_area"
-        type: "string"
-        description: "Doesn't matter"
-        key: "no-exist"
-        name: "Some imaginary var"
-  terraform:
-    group2:
-      - widget: "text_area"
-        type: "boolean"
-        key: "rds_multiaz"
-        name: "RDS multi-AZ"
-        required: true
-      - widget: "slider_range"
-        type: "integer"
-        default: 2
-        values: [1, 10]
-        key: "rds_backup_retention"
-        name: "Backup retention"
-        required: true
-      - widget: "number"
-        type: "integer"
-        key: "front_count"
-        name: "Front amount"
-        required: true
-      - widget: "text_area"
-        type: "array"
-        description: "List of public network IDs"
-        key: "public_subnets_ids"
-        name: "Pub nets"
-      - widget: "text_area"
-        type: "string"
-        description: "The VPC ID to run the project"
-        key: "vpc_id"
-        name: "VPC ID"
-      - widget: "number"
-        type: "integer"
-        key: "storage"
-        name: "Front storage"
-        quota_config:
-          type: "storage"
-          count_ref: "front_count"
-      - widget: "cy_inventory_resource"
-        type: "integer"
-        key: "inventory_test"
-        name: "Inventory test"
-        widget_config:
-          attribute: "id"
-          filters:
-            type: "aws_vpc"
-      - widget: "dropdown"
-        values: [{label: "EU West 1", value: "eu-west-1"},{label: "EU West 2", value: "eu-west-2"}]
-        type: "map"
-        name: "Magento Map"
-        key: "region"
-        required: true
-        default: "EU West 1"
-      - widget: "dropdown"
-        type: "map"
-        key: "interpolated_cy_values_ref"
-        name: "Inventory test"
-        default: '1a'
-        values:
-          - {label: '1a', value: 'vpc-1-a'}
-          - {label: '1b', value: 'vpc-1-b'}
-        values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?owner=($ .project_owner_canonical $)"
-      - widget: "dropdown"
-        type: "map"
-        key: "interpolated_sf_values_ref"
-        name: "Inventory test"
-        default: '1a'
-        values:
-          - {label: '1a', value: 'vpc-1-a'}
-          - {label: '1b', value: 'vpc-1-b'}
-        values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?storage=${storage}"
-      - widget: "dropdown"
-        type: "array"
-        key: "interpolated_sf_multi_values_ref"
-        name: "Inventory test"
-        values_ref: "https://devs-testing-bucket.s3.eu-west-1.amazonaws.com/backend/values_ref.json?region=${region}"
-        widget_config:
-          multiselect: true
-      - widget: "dropdown"
-        type: "string"
-        key: "interpolated_condition"
-        name: "Inventory test condition"
-        values:
-          options:
-            - condition: "'($ .project_owner_canonical $)' == 'robert_parkin'"
-              values: ["8.0", "5.7"]
-            - condition: "'($ .project_owner_canonical $)' != 'robert_parkin'"
-              values: ["13", "14", "15"]
-  terragrunt:
-    group3:
-      - widget: "number"
-        type: "integer"
-        key: "allocated_storage"
-        name: "Front storage"
-second-usecase:
-  ansible:
-    groupY:
-      - widget: "dropdown"
-        values: [{foo: bar}, {bar: foo}]
-        type: "map"
-        name: "Magento Map"
-        key: "magento_map"
-        required: true
-  terraform:
-    groupX:
-      - widget: "simple_text"
-        default: ""
-        type: "string"
-        description: "The DB password for Magento"
-        key: "rds_password"
-        name: "RDS password"
-imaginary-use-case:
-  ansible:
-    group1:
-      - widget: "simple_text"
-        default: "don't matter"
-        type: "string"
-        description: "Some stuff"
-        key: "var"
-        name: "var with imaginary friends"
+# Define the stack configuration form and organize inputs of various types into sections and groups.
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+  - name: aws
+    sections:
+      - name: Cloud provider
+        groups:
+          - name: Access
+            technologies: [pipeline]
+            vars:
+              - name: "Aws region"
+                key: aws_default_region
+                type: string
+                widget: auto_complete
+                values: ["eu-north-1", "ap-south-1", "eu-west-3", "eu-west-2", "eu-west-1", "ap-northeast-2", "ap-northeast-1", "sa-east-1", "ca-central-1", "ap-southeast-1", "ap-southeast-2", "eu-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+                default: "eu-west-1"
+              - name: "AWS access key"
+                description: "AWS access key which should be used"
+                key: aws_cred
+                type: string
+                widget: cy_cred
+                widget_config:
+                  display_keys: false
+                  cred_types: [aws]
+                default: "((aws))"
+
+      - name: Terraform variable example
+        groups:
+          - name: Configuration
+            technologies: [terraform]
+            vars:
+              - name: "Tshirt size"
+                description: "This is a **Terraform variable example**"
+                key: module.example.tshirt_size # Module name should match the Terraform module name specified in main.tf.sample
+                type: string
+                widget: auto_complete
+                values: ["S", "M", "L", "XXL"]
+                default: "M"
