@@ -11,19 +11,20 @@ author: 'gaelL'
 image: 'https://raw.githubusercontent.com/cycloid/test-psc/stack-magento/master/icon.png'
 type: 'stack'
 config:
-  pipeline:
+  aws:
     pipeline:
-      path: 'pipeline/magento.yml'
-    variables:
-      path: 'pipeline/variables.sample.yml'
+      pipeline:
+        path: 'pipeline/magento.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
 
-  # Configuration of ansible for provisionning
-  ansible:
-    magento:
-      path: 'ansible/environments/front.yml.sample'
-      destination: 'ansible/environments/($ .environment $)/components/($ .component $)-front.yml'
-  # Configuration of terraform to setup the infrastructure
-  terraform:
-    magento:
-      path: 'terraform/magento.tf.sample'
-      destination: 'terraform/magento/($ .environment $)/components/($ .component $)/magento.tf'
+    # Configuration of ansible for provisionning
+    ansible:
+      magento:
+        path: 'ansible/environments/front.yml.sample'
+        destination: 'ansible/environments/($ .environment $)/components/($ .component $)-front.yml'
+    # Configuration of terraform to setup the infrastructure
+    terraform:
+      magento:
+        path: 'terraform/magento.tf.sample'
+        destination: 'terraform/magento/($ .environment $)/components/($ .component $)/magento.tf'
