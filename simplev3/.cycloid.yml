@@ -1,6 +1,6 @@
 version: 3
 name: SimpleV3
-canonical: simplev3
+canonical: simplev3-blueprint
 author: 'lukasz_opasiak_cycloid'
 # Fill in the stack details.
 description: 'The bare minimum files to build your stack from scratch.'
