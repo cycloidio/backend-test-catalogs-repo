@@ -54,4 +54,4 @@ config:
     terraform:
       magento:
         path: 'terraform/second/magento.tf.sample'
-        destination: '($ project $)/terraform/second/magento/($ environment $)/magento.tf'
+        destination: '($ project $)/terraform/second/magento/($ environment $)/($ sf.rds_password $)/magento.tf'
