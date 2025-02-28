@@ -124,7 +124,7 @@ second-usecase:
   ansible:
     groupY:
     - widget: "dropdown"
-      values: [{foo: bar}, {bar: foo}]
+      values: [{label: "foo", value: "bar"}, {label: "bar", value: "foo"}]
       type: "map"
       name: "Magento Map"
       key: "magento_map"
