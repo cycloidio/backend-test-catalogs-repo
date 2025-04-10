@@ -116,10 +116,12 @@ first-usecase:
             values: ["13", "14", "15"]
   terragrunt:
     group3:
-    - widget: "number"
-      type: "integer"
-      key: "allocated_storage"
-      name: "Front storage"
+    - widget: "simple_text"
+      default: ""
+      type: "string"
+      description: "The TG region"
+      key: "tg_region"
+      name: "TG Region"
 second-usecase:
   ansible:
     groupY:

@@ -34,7 +34,8 @@ config:
     terragrunt:
       magento:
         path: 'terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
-        destination: '($ project $)/terragrunt/non-prod/us-east-1/qa/mysql/inputs.hcl'
+        destination: '($ project $)/terragrunt/non-prod/($ sf.tg_region $)/qa/mysql/inputs.hcl'
+        #us-east-1
   second-usecase:
     cloud_provider: 'azure'
     pipeline:
