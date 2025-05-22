@@ -72,6 +72,13 @@ first-usecase:
         attribute: "id"
         filters:
           type: "aws_vpc"
+    - widget: "cy_inventory_output"
+      type: "string"
+      key: "inventory_output_test"
+      name: "Instance IP address for output test"
+      widget_config:
+        filters:
+          keys: ["instance_public_ip", "instance_private_ip"]
     - widget: "dropdown"
       values: [{label: "EU West 1", value: "eu-west-1"},{label: "EU West 2", value: "eu-west-2"}]
       type: "map"
