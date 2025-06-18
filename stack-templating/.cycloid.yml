@@ -1,0 +1,40 @@
+# Configuration of the Cycloid stack
+version: '2'
+name: 'templating-stack'
+canonical: 'templating-stack'
+status: 'public'
+description: 'Used to execute kubernetes template files.'
+keywords:
+  - 'kubernetes'
+  - 'templating'
+author: 'Cycloid'
+image: 'https://raw.githubusercontent.com/cycloidio/backend-test-catalogs-repo/refs/heads/test-e2e/stack-templating/icon.png'
+type: 'stack'
+technologies:
+  - technology: Kubernetes
+    version: 1.15+
+config:
+  template-files:
+    name: 'Template files'
+    description: 'Template files given in paths'
+    templating:
+      var_path: 'templating/vars/template-files.json'
+      templates:
+      - paths:
+        - templating/source-templates/deployment.yaml.tmpl
+        destination: templating/result/template-files/deployment.yaml
+      - paths:
+        - templating/source-templates/dir1/service.yaml.tmpl
+        destination: templating/result/template-files
+  template-dir:
+    name: 'Template directory'
+    description: 'Template directory given in paths'
+    templating:
+      var_path: 'templating/vars/template-dir.json'
+      templates:
+      - paths:
+        - templating/source-templates
+        destination: templating/result/template-dir/onefile/manifest.yaml
+      - paths:
+        - templating/source-templates
+        destination: templating/result/template-dir/tree
