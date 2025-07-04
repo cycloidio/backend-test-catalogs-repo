@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx: {{ .nginx.image_tag }}
+        image: nginx:{{ .nginx.image_tag }}
         ports:
         - containerPort: {{ .nginx.container_port }}
