@@ -1,0 +1,5 @@
+{{define "metadata"}}
+apiVersion: v1
+metadata:
+  {{- template "labels" . -}}
+{{end}}
