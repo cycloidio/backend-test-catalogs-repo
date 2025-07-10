@@ -1,8 +1,7 @@
 # Configuration of the Cycloid stack
-version: '2'
+version: '4'
 name: 'stack-templating'
 canonical: 'stack-templating'
-status: 'public'
 description: 'Used to execute kubernetes template files.'
 keywords:
   - 'kubernetes'
@@ -22,11 +21,15 @@ config:
       templates:
       - paths:
         - templating/source-templates/deployment.yaml.tmpl
+        helpers:
+        - templating/helpers
         destination: templating/result/template-files/deployment.yaml
         config:
           destination_is_file: true
       - paths:
         - templating/source-templates/dir1/service.yaml.tmpl
+        helpers:
+        - templating/helpers
         destination: templating/result/template-files
   template-dir:
     name: 'Template directory'
@@ -36,11 +39,15 @@ config:
       templates:
       - paths:
         - templating/source-templates
+        helpers:
+        - templating/helpers
         destination: templating/result/template-dir/onefile/manifest.yaml
         config:
           destination_is_file: true
       - paths:
         - templating/source-templates
+        helpers:
+        - templating/helpers
         destination: templating/result/template-dir/tree
         config:
           destination_is_file: false
