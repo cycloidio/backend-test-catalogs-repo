@@ -2,8 +2,7 @@
 version: '4'
 name: 'stack-templating-sharing'
 canonical: 'stack-templating-sharing'
-status: 'public'
-description: 'Used to execute kubernetes template files.'
+description: 'To test terraform and templating technology using the same form values.'
 keywords:
   - 'kubernetes'
   - 'templating'
@@ -16,7 +15,7 @@ technologies:
 config:
   tech-sharing:
     name: 'Tech Sharing'
-    description: 'Testing that tech sharing between terraform and templating won't collapse'
+    description: "Testing that tech sharing between terraform and templating won't collapse"
     terraform:
       main:
         path: 'main.tf.sample'
@@ -25,7 +24,7 @@ config:
       var_path: '($ .config_root $)/vars/template-files.json'
       templates:
       - paths:
-        - templating/source-templates/deployment.yaml.tmpl
-        destination: ($ .config_root $)/hello_world.yml
+        - template.yaml.tmpl
+        destination: ($ .config_root $)/hello_world.yaml
         config:
           destination_is_file: true
