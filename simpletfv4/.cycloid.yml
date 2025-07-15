@@ -1,6 +1,6 @@
 version: 4
-name: SimpleV4
-canonical: simplev4
+name: SimpleTFV4
+canonical: simpletfv4
 author: 'lukasz_opasiak_cycloid'
 # Fill in the stack details.
 description: 'The bare minimum files to build your stack from scratch.'
