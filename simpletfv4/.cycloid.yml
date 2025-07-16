@@ -20,5 +20,5 @@ config:
         destination: '($ .config_root $)/pipeline/variables.yml'
     terraform:
       backend:
-        path: 'terraform/variables.sample.tf'
+        path: 'terraform/main.tf.sample'
         destination: '($ .config_root $)/terraform/main.tf'

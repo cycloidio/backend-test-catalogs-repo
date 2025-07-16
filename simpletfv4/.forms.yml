@@ -14,3 +14,15 @@ use_cases:
         type: string
         widget: simple_text
         default: "hello world"
+  - name: Terraform variable example
+    groups:
+      - name: Configuration
+        technologies: [terraform]
+        vars:
+          - name: "Tshirt size"
+            description: "This is a **Terraform variable example**"
+            key: module.example.tshirt_size # Module name should match the Terraform module name specified in main.tf.sample
+            type: string
+            widget: auto_complete
+            values: ["S", "M", "L", "XXL"]
+            default: "M"
