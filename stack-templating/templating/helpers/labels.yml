@@ -1,6 +1,0 @@
-{{define "labels"}}
-  labels:
-    app: nginx
-    features: "{{ .features }}"
-    environment: ($ .environment $)
-{{end}}
