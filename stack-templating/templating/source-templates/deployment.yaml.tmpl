@@ -1,0 +1,18 @@
+{{- template "metadata" . -}}
+kind: Deployment
+spec:
+  replicas: {{ .replicas_num }}
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+        project: ($ .project $)
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:{{ .nginx.image_tag }}
+        ports:
+        - containerPort: {{ .nginx.container_port }}
