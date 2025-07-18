@@ -1,6 +1,6 @@
-{{define "labels"}}
+($ define "labels" $)
   labels:
-    app: nginx
-    features: "{{ .features }}"
+    app: ($ default "nginx" .nginx.app_name $)
+    features: ($ .features $)
     environment: ($ .environment $)
-{{end}}
+($end$)

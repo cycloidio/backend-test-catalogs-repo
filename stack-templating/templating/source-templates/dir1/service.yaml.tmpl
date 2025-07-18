@@ -1,12 +1,10 @@
-{{- template "metadata" . -}}
+($- template "metadata" . -$)
 kind: Service
-metadata:
-  name: nginx-service
 spec:
   selector:
-    app: nginx
+    app: ($ default "nginx" .nginx.app_name $)
   ports:
     - protocol: TCP
       port: 80
-      targetPort: {{ .nginx.container_port }}
+      targetPort: ($ .nginx.container_port $)
   type: LoadBalancer
