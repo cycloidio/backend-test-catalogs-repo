@@ -1,24 +1,30 @@
 version: 4
 name: SimpleTFV4
 canonical: simpletfv4
-author: 'lukasz_opasiak_cycloid'
+author: "lukasz_opasiak_cycloid"
 # Fill in the stack details.
-description: 'The bare minimum files to build your stack from scratch.'
+description: "The bare minimum files to build your stack from scratch."
 image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
 template: false
-status: 'public'
+status: "public"
 # Add use cases to the stack.
 # See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
 config:
   default:
-    name: 'Default'
+    name: "Default"
     pipeline:
       pipeline:
-        path: 'pipeline/pipeline.yml'
+        path: "pipeline/pipeline.yml"
       variables:
-        path: 'pipeline/variables.sample.yml'
-        destination: '($ .config_root $)/pipeline/variables.yml'
+        path: "pipeline/variables.sample.yml"
+        destination: "($ .config_root $)/pipeline/variables.yml"
     terraform:
       backend:
-        path: 'terraform/main.tf.sample'
-        destination: '($ .config_root $)/terraform/main.tf'
+        path: "terraform/main.tf.sample"
+        destination: "($ .config_root $)/terraform/main.tf"
+    templating:
+      var_path: ($ .config_root $)/vars.json
+      templates:
+        - paths:
+            - templating
+          destination: ($ .config_root $)/templating
