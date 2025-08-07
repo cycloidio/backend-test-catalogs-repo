@@ -23,20 +23,22 @@ dependencies:
   - ref: 'cycloid:stack-ses'
     required: false
 config:
-  pipeline:
+  default:
+    name: 'default'
     pipeline:
-      path: 'pipeline/magento.yml'
-    variables:
-      path: 'pipeline/variables.sample.yml'
+      pipeline:
+        path: 'pipeline/magento.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
 
-  # Configuration of ansible for provisionning
-  ansible:
-    magento:
-      path: 'ansible/environments/front.yml.sample'
-      destination: 'ansible/environments/($ environment $)-front.yml'
+    # Configuration of ansible for provisionning
+    ansible:
+      magento:
+        path: 'ansible/environments/front.yml.sample'
+        destination: 'ansible/environments/($ environment $)-front.yml'
 
-  # Configuration of terraform to setup the infrastructure
-  terraform:
-    magento:
-      path: 'terraform/magento.tf.sample'
-      destination: 'terraform/magento/($ environment $)/magento.tf'
+    # Configuration of terraform to setup the infrastructure
+    terraform:
+      magento:
+        path: 'terraform/magento.tf.sample'
+        destination: 'terraform/magento/($ environment $)/magento.tf'
