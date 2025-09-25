@@ -8,7 +8,7 @@ use_cases:
       - name: Template variables
         groups:
           - name: nginx
-            technologies: [templating]
+            technologies: [custom]
             vars:
               - name: Features
                 key: features
