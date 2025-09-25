@@ -22,7 +22,7 @@ config:
       backend:
         path: "terraform/main.tf.sample"
         destination: "($ .config_root $)/terraform/main.tf"
-    templating:
+    custom:
       var_path: ($ .config_root $)/vars.json
       templates:
         - paths:
