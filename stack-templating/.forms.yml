@@ -25,6 +25,12 @@ use_cases:
                 widget: simple_text
                 required: true
 
+              - name: App name
+                key: nginx.app_name
+                type: string
+                widget: simple_text
+                required: true
+
               - name: Container port
                 key: nginx.container_port
                 type: integer
