@@ -1,0 +1,17 @@
+version: 4
+name: interpolator-test
+canonical: interpolator-test
+author: "anna_cycloid"
+description: "To test Cycloid Special Vars populated by our interpolator."
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+config:
+  default:
+    name: "Default"
+    custom:
+      var_path: ($ .config_root $)/cy_vars.json
+      templates:
+        - paths:
+            # This is the input path. Add your new Cycloid Special Vars here.
+            - custom/vars.yaml.tmpl
+          destination: ($ .config_root $)/vars.yaml
+          destination_is_file: true
