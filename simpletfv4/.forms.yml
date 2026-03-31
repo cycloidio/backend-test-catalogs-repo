@@ -13,7 +13,7 @@ use_cases:
         key: message
         type: string
         widget: simple_text
-        default: "hello world"
+        default: "hello world new"
   - name: Terraform variable example
     groups:
       - name: Configuration
