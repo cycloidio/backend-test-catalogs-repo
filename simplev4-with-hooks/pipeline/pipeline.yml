@@ -1,0 +1,63 @@
+jobs:
+  - name: simple-job
+    plan:
+      - task: run
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          run:
+            path: echo
+            args: ["hello"]
+
+  # Triggered explicitly by the test right after fly set-pipeline (first time = create)
+  - name: on-pipeline-created
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - curl -s "$NOTIFY_URL/created" && echo "on-pipeline-created done"
+
+  # Triggered explicitly by the test right after fly set-pipeline (second time = update)
+  - name: on-pipeline-updated
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - curl -s "$NOTIFY_URL/updated" && echo "on-pipeline-updated done"
+
+  # Triggered explicitly by the test before fly destroy-pipeline
+  - name: on-pipeline-deleted
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - curl -s "$NOTIFY_URL/deleted" && echo "on-pipeline-deleted done"

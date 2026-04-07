@@ -1,0 +1,24 @@
+version: 4
+name: SimpleV4 with Hooks
+canonical: simplev4-with-hooks
+author: "lukasz_opasiak_cycloid"
+# Fill in the stack details.
+description: "Simple pipeline config with hooks."
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+template: false
+status: "public"
+# Add use cases to the stack.
+# See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
+config:
+  default:
+    name: "Default"
+    pipeline:
+      pipeline:
+        path: "pipeline/pipeline.yml"
+        hooks:
+          on_create: on-pipeline-created
+          on_update: on-pipeline-updated
+          on_delete: on-pipeline-deleted
+      variables:
+        path: "pipeline/variables.sample.yml"
+        destination: "($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml"
