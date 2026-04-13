@@ -26,7 +26,7 @@ jobs:
             path: sh
             args:
               - -exc
-              - curl -s "$NOTIFY_URL/created" && echo "on-pipeline-created done"
+              - wget -q "$NOTIFY_URL/created" && echo "on-pipeline-created done"
 
   # Triggered explicitly by the test right after fly set-pipeline (second time = update)
   - name: on-pipeline-updated
@@ -43,7 +43,7 @@ jobs:
             path: sh
             args:
               - -exc
-              - curl -s "$NOTIFY_URL/updated" && echo "on-pipeline-updated done"
+              - wget -q "$NOTIFY_URL/updated" && echo "on-pipeline-updated done"
 
   # Triggered explicitly by the test before fly destroy-pipeline
   - name: on-pipeline-deleted
@@ -60,4 +60,4 @@ jobs:
             path: sh
             args:
               - -exc
-              - curl -s "$NOTIFY_URL/deleted" && echo "on-pipeline-deleted done"
+              - wget -q "$NOTIFY_URL/deleted" && echo "on-pipeline-deleted done"
