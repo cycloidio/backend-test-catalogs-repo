@@ -24,7 +24,7 @@ config:
     name: "Resources"
     pipeline:
       pipeline:
-        path: "pipeline/pipeline-resources.yml"
+        path: "pipeline/pipeline.yml"
         hooks:
           on_create: resource:on-create-resource
           on_update: resource:on-update-resource
