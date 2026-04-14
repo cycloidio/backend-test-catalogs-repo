@@ -1,3 +1,31 @@
+resource_types:
+  - name: mock
+    type: registry-image
+    source:
+      repository: concourse/mock-resource
+
+resources:
+  - name: on-create-resource
+    type: mock
+    check_every: never
+    source:
+      mirror_self: true
+      initial_version: "0"
+
+  - name: on-update-resource
+    type: mock
+    check_every: never
+    source:
+      mirror_self: true
+      initial_version: "0"
+
+  - name: on-delete-resource
+    type: mock
+    check_every: never
+    source:
+      mirror_self: true
+      initial_version: "0"
+
 jobs:
   - name: simple-job
     plan:
@@ -11,9 +39,10 @@ jobs:
             path: echo
             args: ["hello"]
 
-  # Triggered explicitly by the test right after fly set-pipeline (first time = create)
   - name: on-pipeline-created
     plan:
+      - get: on-create-resource
+        trigger: true
       - task: notify
         config:
           platform: linux
@@ -28,9 +57,10 @@ jobs:
               - -exc
               - wget -q "$NOTIFY_URL/created" && echo "on-pipeline-created done"
 
-  # Triggered explicitly by the test right after fly set-pipeline (second time = update)
   - name: on-pipeline-updated
     plan:
+      - get: on-update-resource
+        trigger: true
       - task: notify
         config:
           platform: linux
@@ -45,9 +75,10 @@ jobs:
               - -exc
               - wget -q "$NOTIFY_URL/updated" && echo "on-pipeline-updated done"
 
-  # Triggered explicitly by the test before fly destroy-pipeline
   - name: on-pipeline-deleted
     plan:
+      - get: on-delete-resource
+        trigger: true
       - task: notify
         config:
           platform: linux
