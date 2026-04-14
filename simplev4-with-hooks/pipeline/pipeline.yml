@@ -4,6 +4,7 @@ resource_types:
     source:
       repository: concourse/mock-resource
 
+# Each of this resources trigger a dedicated resource job
 resources:
   - name: on-create-resource
     type: mock
@@ -39,7 +40,25 @@ jobs:
             path: echo
             args: ["hello"]
 
+  # Triggered directly by the backend hook
   - name: on-pipeline-created
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - wget -q "$NOTIFY_URL/created-job" && echo "on-pipeline-created done"
+
+  # Triggered by on-create-resource being checked
+  - name: on-pipeline-created-by-resource
     plan:
       - get: on-create-resource
         trigger: true
@@ -55,9 +74,25 @@ jobs:
             path: sh
             args:
               - -exc
-              - wget -q "$NOTIFY_URL/created" && echo "on-pipeline-created done"
+              - wget -q "$NOTIFY_URL/created-resource" && echo "on-pipeline-created-by-resource done"
 
   - name: on-pipeline-updated
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - wget -q "$NOTIFY_URL/updated-job" && echo "on-pipeline-updated done"
+
+  - name: on-pipeline-updated-by-resource
     plan:
       - get: on-update-resource
         trigger: true
@@ -73,9 +108,25 @@ jobs:
             path: sh
             args:
               - -exc
-              - wget -q "$NOTIFY_URL/updated" && echo "on-pipeline-updated done"
+              - wget -q "$NOTIFY_URL/updated-resource" && echo "on-pipeline-updated-by-resource done"
 
   - name: on-pipeline-deleted
+    plan:
+      - task: notify
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source: { repository: alpine }
+          params:
+            NOTIFY_URL: ((notify_url))
+          run:
+            path: sh
+            args:
+              - -exc
+              - wget -q "$NOTIFY_URL/deleted-job" && echo "on-pipeline-deleted done"
+
+  - name: on-pipeline-deleted-by-resource
     plan:
       - get: on-delete-resource
         trigger: true
@@ -91,4 +142,4 @@ jobs:
             path: sh
             args:
               - -exc
-              - wget -q "$NOTIFY_URL/deleted" && echo "on-pipeline-deleted done"
+              - wget -q "$NOTIFY_URL/deleted-resource" && echo "on-pipeline-deleted-by-resource done"
