@@ -1,7 +1,7 @@
 # Define the stack configuration form and organize inputs of various types into sections and groups.
 # See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
 use_cases:
-  - name: default
+  - name: cycloid-common
     sections:
       - name: Example section
         groups:
