@@ -39,7 +39,7 @@ config:
         path: "pipeline/variables.sample.yml"
         destination: "($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml"
 
-  hooks_pausig:
+  hooks_pausing:
     name: "Pausing pipeline and jobs"
     pipeline:
       pipeline:
