@@ -27,3 +27,16 @@ use_cases:
                 type: string
                 widget: simple_text
                 required: true
+  - name: hooks_pausing
+    sections:
+      - name: Example section
+        groups:
+          - name: Example group
+            technologies: [pipeline]
+            vars:
+              - name: "Notify URL"
+                description: "Notify URL for pipeline hooks."
+                key: notify_url
+                type: string
+                widget: simple_text
+                required: true

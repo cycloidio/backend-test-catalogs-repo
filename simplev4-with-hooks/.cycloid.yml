@@ -13,9 +13,12 @@ config:
       pipeline:
         path: "pipeline/pipeline.yml"
         hooks:
-          on_create: job:on-pipeline-created
-          on_update: job:on-pipeline-updated
-          on_delete: job:on-pipeline-deleted
+          on_create:
+            - job:on-pipeline-created
+          on_update:
+            - job:on-pipeline-updated
+          on_delete:
+            - job:on-pipeline-deleted
       variables:
         path: "pipeline/variables.sample.yml"
         destination: "($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml"
@@ -26,9 +29,35 @@ config:
       pipeline:
         path: "pipeline/pipeline.yml"
         hooks:
-          on_create: resource:on-create-resource
-          on_update: resource:on-update-resource
-          on_delete: resource:on-delete-resource
+          on_create:
+            - resource:on-create-resource
+          on_update:
+            - resource:on-update-resource
+          on_delete:
+            - resource:on-delete-resource
+      variables:
+        path: "pipeline/variables.sample.yml"
+        destination: "($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml"
+
+  hooks_pausig:
+    name: "Pausing pipeline and jobs"
+    pipeline:
+      pipeline:
+        path: "pipeline/pipeline.yml"
+        hooks:
+          on_create:
+            - resource:on-create-resource
+            - pipeline:pause
+            # Now pipeline is paused, triggering the job will fail
+            # but since the previously triggered resource hook succeeded,
+            # the error will be swallowed to let the operation complete
+            - job:on-pipeline-created:trigger
+          on_update:
+            - pipeline:unpause
+            - job:on-pipeline-updated:trigger
+            - job:on-pipeline-updated:pause
+          on_delete:
+            - job:on-pipeline-updated:unpause
       variables:
         path: "pipeline/variables.sample.yml"
         destination: "($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml"
