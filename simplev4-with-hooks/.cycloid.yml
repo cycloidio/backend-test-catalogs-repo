@@ -57,6 +57,7 @@ config:
             - job:on-pipeline-updated:trigger
             - job:on-pipeline-updated:pause
           on_delete:
+            - job:on-pipeline-deleted:trigger
             - job:on-pipeline-updated:unpause
       variables:
         path: "pipeline/variables.sample.yml"
