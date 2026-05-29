@@ -1,5 +1,3 @@
-# Use the latest version 2 of the Cycloid StackForms engine.
-version: 2
 
 use_cases:
 - name: cycloid-common
