@@ -1,5 +1,4 @@
 ---
-version: 2
 use_cases:
   - name: tech-sharing
     sections:
