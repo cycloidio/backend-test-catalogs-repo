@@ -7,6 +7,9 @@ description: "The bare minimum files to build your stack from scratch."
 image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
 template: false
 status: "public"
+# Labels used by the youdeploy-http-api label filter / env-type selector e2e tests (PROD-770)
+labels:
+  env-type: staging
 # Add use cases to the stack.
 # See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
 config:
