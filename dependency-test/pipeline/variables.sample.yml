@@ -1,0 +1,2 @@
+# Expose variables to the pipeline.
+message: "Filled by stackforms"
