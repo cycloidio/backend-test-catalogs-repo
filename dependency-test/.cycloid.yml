@@ -3,9 +3,8 @@ name: dependency-test
 canonical: dependency-test
 dependencies:
   - simplev4
-  - simpletf4
 author: "anna_cycloid"
-description: "To test stack dependencies. It can be deployed only after simplev4 and simpletf4."
+description: "To test stack dependencies. It can be deployed only after simplev4."
 image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
 # Add use cases to the stack.
 # See: https://docs.cycloid.io/manage/pipeline/multi-use-case.html#multiple-use-case
