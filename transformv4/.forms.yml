@@ -1,0 +1,28 @@
+# Exercises the stackforms values `transform` pipeline (PROD-652).
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+- name: default
+  sections:
+  - name: Transform
+    groups:
+    - name: Options
+      technologies: [pipeline]
+      vars:
+      - name: "Message"
+        description: "A message echoed during pipeline runs."
+        key: message
+        type: string
+        widget: simple_text
+        default: "hello world"
+      - name: "Region"
+        description: "Dropdown carrying a transform pipeline. The step is an
+          identity cast today: the transform engine currently applies the
+          pipeline as a pass-through (PROD-804 foundation) and real steps land
+          with PROD-806/807/808/809."
+        key: region
+        type: string
+        widget: dropdown
+        values: ["eu-west-1", "eu-west-3", "us-east-1"]
+        default: "eu-west-1"
+        transform:
+        - cast: string

@@ -1,0 +1,20 @@
+version: 4
+name: TransformV4
+canonical: transformv4
+author: 'lukasz_opasiak_cycloid'
+# Stack used by the e2e suite to exercise the stackforms values `transform`
+# pipeline (PROD-652). Keep it minimal: one plain widget and one widget that
+# carries a transform block.
+description: 'Exercises the stackforms values transform pipeline.'
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+template: false
+status: 'public'
+config:
+  default:
+    name: 'Default'
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
+        destination: '($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml'
