@@ -26,3 +26,14 @@ use_cases:
         default: "eu-west-1"
         transform:
         - cast: string
+      - name: "Region (from value_ref)"
+        description: "Options fetched from a value_ref API that returns a
+          {\"data\": [...]} shape (rejected by the strict decode), reshaped into
+          a flat list by an extract transform (PROD-807). No static values, so
+          the options come solely from the fetched+extracted response."
+        key: region_from_ref
+        type: string
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_extract.json
+        transform:
+        - extract: .data
