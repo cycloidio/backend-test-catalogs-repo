@@ -98,3 +98,14 @@ use_cases:
         values_ref: http://minio:9000/valuesref/values_ref_versions.json
         transform:
         - cast: integer
+      - name: "Memory MB (math multiply)"
+        description: "value_ref returns memory in GB; math multiplies by 1024 to
+          MB for an integer-typed widget (PROD-808)."
+        key: memory_mb
+        type: integer
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_versions.json
+        transform:
+        - math:
+            op: multiply
+            by: 1024
