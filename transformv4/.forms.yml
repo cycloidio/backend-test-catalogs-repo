@@ -15,10 +15,9 @@ use_cases:
         widget: simple_text
         default: "hello world"
       - name: "Region"
-        description: "Dropdown carrying a transform pipeline. The step is an
-          identity cast today: the transform engine currently applies the
-          pipeline as a pass-through (PROD-804 foundation) and real steps land
-          with PROD-806/807/808/809."
+        description: "Dropdown whose static values pass through a cast:string step
+          (PROD-806). A no-op here since they are already strings, but it exercises
+          cast on static (non value_ref) values."
         key: region
         type: string
         widget: dropdown
@@ -80,3 +79,22 @@ use_cases:
         - map:
             label: .meta.display
             value: .meta.code
+      - name: "Tomcat version (cast to string)"
+        description: "value_ref returns version numbers; cast coerces them to
+          strings so the string-typed widget accepts them (PROD-806)."
+        key: tomcat_version
+        type: string
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_versions.json
+        transform:
+        - cast: string
+      - name: "Java major (cast to integer)"
+        description: "The same numeric value_ref cast to integers for an
+          integer-typed widget, the other direction of string <-> integer
+          (PROD-806)."
+        key: java_major
+        type: integer
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_versions.json
+        transform:
+        - cast: integer
