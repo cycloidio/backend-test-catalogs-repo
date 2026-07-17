@@ -48,3 +48,35 @@ use_cases:
         transform:
         - extract: .data
         - map: {label: .region, value: .region}
+      - name: "Region (deep extract)"
+        description: "Deep, iterated extract from a nested {data:{regions:[...]}}
+          response into a flat list of codes (PROD-807)."
+        key: region_deep
+        type: string
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_nested.json
+        transform:
+        - extract: ".data.regions[].code"
+      - name: "Region (composite label)"
+        description: "Nested extract, then a composite label built with jq string
+          interpolation (PROD-809). Mapped dropdown; label differs from value."
+        key: region_composite
+        type: map
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_nested.json
+        transform:
+        - extract: .data.regions
+        - map:
+            label: '"\(.name) (\(.code))"'
+            value: .code
+      - name: "Region (nested field map)"
+        description: "Map projects nested fields of each element into label/value
+          (PROD-809). Mapped dropdown; label differs from value."
+        key: region_meta
+        type: map
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_meta.json
+        transform:
+        - map:
+            label: .meta.display
+            value: .meta.code
