@@ -37,3 +37,14 @@ use_cases:
         values_ref: http://minio:9000/valuesref/values_ref_extract.json
         transform:
         - extract: .data
+      - name: "Region (mapped from value_ref)"
+        description: "value_ref returns [{region: ...}] objects; extract flattens
+          them and map projects each into a {label, value} pair (PROD-809). Mapped
+          dropdown, label == value so submission is unambiguous."
+        key: region_mapped
+        type: map
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_map.json
+        transform:
+        - extract: .data
+        - map: {label: .region, value: .region}
