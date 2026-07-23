@@ -1,0 +1,35 @@
+# Exercises values_ref_config authentication on values_ref calls (PROD-817).
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+- name: default
+  sections:
+  - name: Authentication
+    groups:
+    - name: Options
+      technologies: [pipeline]
+      vars:
+      - name: "Message"
+        description: "A message echoed during pipeline runs."
+        key: message
+        type: string
+        widget: simple_text
+        default: "hello world"
+      - name: "Region (authenticated value_ref)"
+        description: "Options fetched from a value_ref API carrying a
+          values_ref_config auth block (PROD-817): a bearer token given as a
+          ${cred:...} reference resolved server-side, plus a static header and a
+          timeout. At the foundation slice the config is validated and
+          round-tripped but not yet applied, so the request stays anonymous and
+          the minio fixture is served without auth."
+        key: region
+        type: string
+        widget: dropdown
+        values_ref: http://minio:9000/valuesref/values_ref_auth.json
+        values_ref_config:
+          timeout: "30s"
+          headers:
+            X-Cy-Test: e2e
+          auth:
+            type: bearer
+            token: "${cred:values-ref-token.token}"
+        default: "eu-west-1"
