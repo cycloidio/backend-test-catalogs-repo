@@ -15,12 +15,11 @@ use_cases:
         widget: simple_text
         default: "hello world"
       - name: "Region (authenticated value_ref)"
-        description: "Options fetched from a value_ref API carrying a
+        description: "Options fetched from a value_ref carrying a
           values_ref_config auth block (PROD-817): a bearer token given as a
           ${cred:...} reference resolved server-side, plus a static header and a
-          timeout. At the foundation slice the config is validated and
-          round-tripped but not yet applied, so the request stays anonymous and
-          the minio fixture is served without auth."
+          timeout. The header is applied to the request; the minio fixture is
+          served anonymously so it is ignored here (region_authed gates on it)."
         key: region
         type: string
         widget: dropdown
@@ -29,6 +28,20 @@ use_cases:
           timeout: "30s"
           headers:
             X-Cy-Test: e2e
+          auth:
+            type: bearer
+            token: "${cred:values-ref-token.token}"
+        default: "eu-west-1"
+      - name: "Region (auth-gated value_ref)"
+        description: "Options fetched from an endpoint that returns 200 only when
+          the resolved bearer header is present (PROD-817). A successful resolve
+          proves the values_ref_config auth header actually reaches the remote.
+          The token is a ${cred:...} reference resolved server-side from Vault."
+        key: region_authed
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-auth/values_ref_auth.json
+        values_ref_config:
           auth:
             type: bearer
             token: "${cred:values-ref-token.token}"
