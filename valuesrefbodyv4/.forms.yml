@@ -68,6 +68,21 @@ use_cases:
         transform:
         - extract: '.json.values'
         default: "raw-eu-west-1"
+      - name: "Region (credential in body)"
+        description: "The payload holds a ${cred:...} reference (PROD-818),
+          resolved server-side from the organization's Vault before the request.
+          The option comes back from the echoed body, so it can only match the
+          credential's stored value if the reference was resolved."
+        key: region_cred_body
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-echo:8080/values_ref_body
+        values_ref_config:
+          method: POST
+          body:
+            values: ["${cred:values-ref-token.token}"]
+        transform:
+        - extract: '.json.values'
       - name: "Region (interpolated body)"
         description: "The payload interpolates ${env_name} (PROD-818), so the
           widget depends on it and is fetched once it is filled. The option comes
