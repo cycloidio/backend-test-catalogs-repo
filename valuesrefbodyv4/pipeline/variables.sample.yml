@@ -1,0 +1,7 @@
+# Expose variables to the pipeline.
+message: "Filled by stackforms"
+env_name: "Filled by stackforms"
+region: "Filled by stackforms"
+region_method: "Filled by stackforms"
+region_raw_body: "Filled by stackforms"
+region_interpolated: "Filled by stackforms"

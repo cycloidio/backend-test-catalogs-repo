@@ -1,0 +1,85 @@
+# Exercises values_ref_config method and body on values_ref calls (PROD-818).
+# Every widget below fetches from the values-ref-echo fixture, which answers with
+# the request it received: the options a widget ends up with are the payload it
+# sent, so a successful resolve proves the method, the Content-Type and the body
+# actually reached the remote.
+# See: https://docs.staging.cycloid.io/deploy/stackforms/file-format.html
+use_cases:
+- name: default
+  sections:
+  - name: Request
+    groups:
+    - name: Options
+      technologies: [pipeline]
+      vars:
+      - name: "Message"
+        description: "A message echoed during pipeline runs."
+        key: message
+        type: string
+        widget: simple_text
+        default: "hello world"
+      - name: "Environment name"
+        description: "Interpolated into the request body of region_interpolated."
+        key: env_name
+        type: string
+        widget: simple_text
+        default: "prod"
+      - name: "Region (POST body)"
+        description: "Options fetched with a POST carrying a JSON body (PROD-818).
+          The echo endpoint answers with the request it received and the extract
+          step reads the options back out of it, so the options can only be the
+          ones the body carried."
+        key: region
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-echo:8080/values_ref_body
+        values_ref_config:
+          method: POST
+          body:
+            values: ["eu-west-1", "us-east-1"]
+        transform:
+        - extract: '.json.values'
+        default: "eu-west-1"
+      - name: "Region (PUT verb)"
+        description: "Options built from the verb the remote saw (PROD-818), so a
+          request still sent as a GET would resolve to [\"GET\"] and fail
+          validation of the submitted value."
+        key: region_method
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-echo:8080/values_ref_body
+        values_ref_config:
+          method: PUT
+          body:
+            probe: verb
+        transform:
+        - extract: '[.method]'
+        default: "PUT"
+      - name: "Region (body written as raw JSON)"
+        description: "Same as region but with the payload authored as a JSON
+          string rather than as YAML (PROD-818): it is sent verbatim."
+        key: region_raw_body
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-echo:8080/values_ref_body
+        values_ref_config:
+          method: POST
+          body: '{"values": ["raw-eu-west-1"]}'
+        transform:
+        - extract: '.json.values'
+        default: "raw-eu-west-1"
+      - name: "Region (interpolated body)"
+        description: "The payload interpolates ${env_name} (PROD-818), so the
+          widget depends on it and is fetched once it is filled. The option comes
+          back from the echoed body, proving the interpolation happened before
+          the request was sent."
+        key: region_interpolated
+        type: string
+        widget: dropdown
+        values_ref: http://values-ref-echo:8080/values_ref_body
+        values_ref_config:
+          method: POST
+          body:
+            values: ["eu-${env_name}-1"]
+        transform:
+        - extract: '.json.values'

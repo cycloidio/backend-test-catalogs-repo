@@ -1,0 +1,20 @@
+version: 4
+name: ValuesRefBodyV4
+canonical: valuesrefbodyv4
+author: 'lukasz_opasiak_cycloid'
+# Stack used by the e2e suite to exercise the values_ref_config method and body
+# on stackforms values_ref calls (PROD-818). Keep it minimal: the widgets fetch
+# from an echo endpoint so their options are the payload they sent.
+description: 'Exercises values_ref_config method and body for values_ref calls.'
+image: https://github.com/cycloidio/bootstrap-stacks/blob/master/blank-sample/thumbnail.png
+template: false
+status: 'public'
+config:
+  default:
+    name: 'Default'
+    pipeline:
+      pipeline:
+        path: 'pipeline/pipeline.yml'
+      variables:
+        path: 'pipeline/variables.sample.yml'
+        destination: '($ .project $)/pipeline/($ .environment $)/variables-($ .component $).yml'
