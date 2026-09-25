@@ -18,12 +18,12 @@ use_cases:
         description: "Options fetched from a value_ref carrying a
           values_ref_config auth block (PROD-817): a bearer token given as a
           ${cred:...} reference resolved server-side, plus a static header and a
-          timeout. The header is applied to the request; the rustfs fixture is
+          timeout. The header is applied to the request; the seaweedfs fixture is
           served anonymously so it is ignored here (region_authed gates on it)."
         key: region
         type: string
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_auth.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_auth.json
         values_ref_config:
           timeout: "30s"
           headers:

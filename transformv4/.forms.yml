@@ -33,7 +33,7 @@ use_cases:
         key: region_from_ref
         type: string
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_extract.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_extract.json
         transform:
         - extract: .data
       - name: "Region (mapped from value_ref)"
@@ -43,7 +43,7 @@ use_cases:
         key: region_mapped
         type: map
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_map.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_map.json
         transform:
         - extract: .data
         - map: {label: .region, value: .region}
@@ -53,7 +53,7 @@ use_cases:
         key: region_deep
         type: string
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_nested.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_nested.json
         transform:
         - extract: ".data.regions[].code"
       - name: "Region (composite label)"
@@ -62,7 +62,7 @@ use_cases:
         key: region_composite
         type: map
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_nested.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_nested.json
         transform:
         - extract: .data.regions
         - map:
@@ -74,7 +74,7 @@ use_cases:
         key: region_meta
         type: map
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_meta.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_meta.json
         transform:
         - map:
             label: .meta.display
@@ -85,7 +85,7 @@ use_cases:
         key: tomcat_version
         type: string
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_versions.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_versions.json
         transform:
         - cast: string
       - name: "Java major (cast to integer)"
@@ -95,7 +95,7 @@ use_cases:
         key: java_major
         type: integer
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_versions.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_versions.json
         transform:
         - cast: integer
       - name: "Memory MB (math multiply)"
@@ -104,7 +104,7 @@ use_cases:
         key: memory_mb
         type: integer
         widget: dropdown
-        values_ref: http://rustfs:9000/valuesref/values_ref_versions.json
+        values_ref: http://seaweedfs:9000/valuesref/values_ref_versions.json
         transform:
         - math:
             op: multiply
