@@ -46,3 +46,24 @@ use_cases:
             type: bearer
             token: "${cred:values-ref-token.token}"
         default: "eu-west-1"
+      - name: "Auth host"
+        description: "Static options for the host of host_zone (ENG-484): a
+          credentialed values_ref may take its host from a form value only when
+          that value is one of the widget's static values."
+        key: auth_host
+        type: string
+        widget: dropdown
+        values: ["values-ref-auth"]
+        default: "values-ref-auth"
+      - name: "Zone (host from a form value)"
+        description: "A credentialed values_ref whose host is filled from
+          auth_host (ENG-484): a static option is allowed, any other value is
+          refused with a 403 before the request."
+        key: host_zone
+        type: string
+        widget: dropdown
+        values_ref: "http://${auth_host}/values_ref_auth.json"
+        values_ref_config:
+          auth:
+            type: bearer
+            token: "${cred:values-ref-token.token}"
